@@ -43,24 +43,23 @@ line_t *testLine()
   return cache;
 }
 
-int nLine;  /* the number of remaining lines */
-
 /**
- * Parse one tree of an expression and return the value of the expression.
+ * Parse one tree of an expression and return the value of it.
+ * @param *n the number of remaining lines (modified by this function)
  */
-int compute()
+int compute(int *n)
 {
   line_t *head;
   int acc, sub, depth, content;
   head = getLine();
   depth   = head->depth;
   content = head->content;
-  nLine--;
+  (*n)--;
 
   if (isdigit(content)) return content - '0';
   acc = (content == '+' ? 0 : 1); /* the unit */
-  while (nLine > 0 && testLine()->depth > depth) {
-    sub = compute();
+  while (*n > 0 && testLine()->depth > depth) {
+    sub = compute(n);
     acc = (content == '+' ? acc + sub : acc * sub);
   }
   return acc;
@@ -68,11 +67,11 @@ int compute()
 
 int main()
 {
-  int answer;
+  int n, answer;
   for (;;) {
-    scanf("%d", &nLine);
-    if (nLine == 0) break;
-    answer = compute();
+    scanf("%d", &n);
+    if (n == 0) break;
+    answer = compute(&n);
     printf("%d\n", answer);
   }
   return 0;
