@@ -1,4 +1,4 @@
-import java.util.Scanner;
+import java.util.*;
 
 class D {
   public static void main(String[] arg) {
@@ -15,43 +15,45 @@ class D {
   }
 
   static class Dharma {
-    public Dharma() {}
-
     public Dharma(int[] w) {
       this.w = w;
     }
     int[] w;
+    Map<BitSet,Integer> memo = new HashMap<>();
 
     /**
      * 深さ優先探索し, 取り除けるブロック数の最大を返す.
      */
     public int solve() {
-      int max = 0;
-      for (int i = 1; i < w.length; i++) {
-        // 差が1以下
-        if (Math.abs(w[i-1] - w[i]) <= 1) {
-          Dharma next = kickOut(i-1); // 叩き出した後を表すオブジェクト
-          int score = 2 + next.solve(); // 2個叩き出す + その後の得点
-          max = Math.max(max, score);
-        }
-      }
-      return max;
+      return solve(new BitSet(w.length));
     }
 
     /**
-     * i, i+1番ブロックを叩き出した後を表す新しいオブジェクトを返す.
+     * @param removed 削除済みブロックを表すビット列
      */
-    public Dharma kickOut(int i) {
-      Dharma next = new Dharma();
-      next.w = new int[this.w.length - 2];
-      for (int j = 0; j < i; j++) {
-        next.w[j] = this.w[j];
+    private int solve(BitSet removed) {
+      Integer x = memo.get(removed);
+      if (x != null) return x.intValue();
+
+      int max = 0;
+      int prev = -1;
+      for (int i = 0; i < w.length; i++) {
+        if (removed.get(i)) continue; // ブロックiは削除済み
+        // 差が1以下
+        if (prev >= 0 && Math.abs(w[prev] - w[i]) <= 1) {
+          // prevとiを削除したコピーを作る
+          BitSet removedX = (BitSet)removed.clone();
+          removedX.set(prev);
+          removedX.set(i);
+          int score = 2 + solve(removedX); // 2個叩き出す + その後の得点
+          max = Math.max(max, score);
+        }
+        prev = i;
       }
-      for (int j = i; j < next.w.length; j++) {
-        next.w[j] = this.w[j + 2];
-      }
-      return next;
+      memo.put(removed, max); // メモ化
+      return max;
     }
+
   }
 
 }
