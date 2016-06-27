@@ -3,11 +3,8 @@ import java.util.*;
 /**
  * ACM-ICPC domestic 2016
  * Problem E: 3D printing
- *
- * Class of the 3D space the cubes will be placed in.
  */
-class Space {
-
+class E {
   public static void main(String[] arg) {
     Scanner scanner = new Scanner(System.in);
     while (true) {
@@ -25,9 +22,30 @@ class Space {
       System.out.println(space.solve(k));
     }
   }
+}
+
+/**
+ * Class of the 3D space the cubes will be placed in.
+ *
+ * この3D空間は, 場所を節点とする無向グラフと見なせる.
+ * 2つの場所に置いた立方体が重なるとき, その2節点は隣接している.
+ * 問題設定より, 各節点の次数は高々2である.
+ * 従って, 3D空間の連結成分は, 孤立節点, 単純パス, 閉路のいずれか.
+ * 多面体は, 連結成分中の連続するk節点に立方体を置くことで得られる.
+ */
+class Space {
+  /**
+   * @param s 立方体の1辺
+   */
+  Space(int s) {
+    this.s = s;
+  }
+
+  int s; // 立方体の1辺
+  List<Position> pos = new ArrayList<>(); // 場所のリスト
 
   /**
-   * 表面積最小の多面体の表面積を返す
+   * 表面積最小の多面体の表面積を返す.
    * @param k 立方体数
    */
   int solve(int k) {
@@ -40,7 +58,7 @@ class Space {
       int n = (c.isCycle() && c.size() > k) ? c.size() // 閉路状の多面体
             : c.size() - k + 1; // 両端のある多面体
       for (int h = 0; h < n; h++) {
-        // cのh番要素からk個の立方体を選んで作った多面体の表面積
+        // 連結成分cのh番要素からk個の立方体を選んで作った多面体の表面積
         int area = c.area(h, k);
         if (min < 0 || min > area) {
           min = area;
@@ -52,7 +70,7 @@ class Space {
 
   /**
    * 連結成分に分ける.
-   * @return 連結成分の始点のリスト
+   * @return 連結成分のリスト
    */
   List<Component> findComponents() {
     List<Component> component = new ArrayList<>();
@@ -89,15 +107,36 @@ class Space {
   }
 
   /**
-   * 3D空間 (場所を節点とする無向グラフ)
-   * @param s 立方体の1辺
+   * 連結成分を表すクラス.
+   * 連結成分は, 孤立節点, 単純パス, 閉路のいずれか.
    */
-  Space(int s) {
-    this.size = s;
-  }
+  class Component extends ArrayList<Position> {
+    /** この連結成分が閉路か? */
+    boolean isCycle() {
+      return size() != 0 && get(0).degree() == 2; // 先頭要素の次数が2
+    }
 
-  int size; // 立方体の1辺
-  List<Position> pos = new ArrayList<>(); // 場所のリスト
+    /** head番以降のk個の立方体からなる多面体の表面積 */
+    int area(int head, int k) {
+      boolean isCycle = (isCycle() && size() == k); // 閉路状の多面体
+      int a = 0; // 表面積
+      for (int i = 0; i < k; i++) {
+        Position p = get((head + i) % size());
+        // pの表面積からp.prev, p.nextに隠される表面積を引く
+        a += 6 * s * s
+           - (isCycle || i > 0     ? p.hiddenBy(p.prev) : 0)
+           - (isCycle || i < k - 1 ? p.hiddenBy(p.next) : 0);
+      }
+      return a;
+    }
+
+    @Override
+    public String toString() { // デバッグ用
+      return "<" + (isCycle() ? "cycle" : "path")
+           + "(" + size() + "):"
+           + super.toString() + ">";
+    }
+  }
 
   /** 場所を追加する */
   void addPosition(int x, int y, int z) {
@@ -110,38 +149,6 @@ class Space {
       }
     }
     pos.add(p);
-  }
-
-  /**
-   * 連結成分を表すクラス.
-   * 連結成分は, 孤立節点, パス, 閉路のいずれか.
-   */
-  class Component extends ArrayList<Position> {
-    /** この連結成分が閉路か? */
-    boolean isCycle() {
-      return size() != 0 && get(0).degree() == 2;
-    }
-
-    /** head番以降のk個の立方体からなる多面体の表面積 */
-    int area(int head, int k) {
-      boolean isCycle = (isCycle() && size() == k); // 閉路状の多面体
-      int a = 0; // 表面積
-      for (int i = 0; i < k; i++) {
-        Position p = get((head + i) % size());
-        // pの表面積からp.prev, p.nextに隠される表面積を引く
-        a += 6 * size * size
-           - (isCycle || i > 0     ? p.hiddenBy(p.prev) : 0)
-           - (isCycle || i < k - 1 ? p.hiddenBy(p.next) : 0);
-      }
-      return a;
-    }
-
-    @Override
-    public String toString() {
-      return "<" + (isCycle() ? "cycle" : "path")
-           + "(" + size() + "):"
-           + super.toString() + ">";
-    }
   }
 
   /**
@@ -165,9 +172,9 @@ class Space {
 
     /** 場所thatと隣接しているか */
     boolean adjacent(Position that) {
-      return Math.abs(this.x - that.x) < size
-          && Math.abs(this.y - that.y) < size
-          && Math.abs(this.z - that.z) < size;
+      return Math.abs(this.x - that.x) < s
+          && Math.abs(this.y - that.y) < s
+          && Math.abs(this.z - that.z) < s;
     }
 
     /**
@@ -186,20 +193,19 @@ class Space {
      */
     int hiddenBy(Position p) {
       if (p == null) return 0;
-      int dx = Math.abs(this.x - p.x); // dx, dy, dzはsize未満
+      int dx = Math.abs(this.x - p.x); // dx, dy, dzはs未満
       int dy = Math.abs(this.y - p.y);
       int dz = Math.abs(this.z - p.z);
       // 平行な2面のうちちょうど1面が隠される
-      return (size - dx) * (size - dy)
-           + (size - dx) * (size - dz)
-           + (size - dy) * (size - dz);
+      return (s - dx) * (s - dy)
+           + (s - dx) * (s - dz)
+           + (s - dy) * (s - dz);
     }
 
     @Override
-    public String toString() {
+    public String toString() { // デバッグ用
       return "(" + x + "," + y + "," + z + ")";
     }
   }
-
 
 }
