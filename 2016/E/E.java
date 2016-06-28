@@ -55,10 +55,11 @@ class Space {
     int min = -1;
     for (Component c : component) {
       // 可能な多面体の個数
-      int n = (c.isCycle() && c.size() > k) ? c.size() // 閉路状の多面体
-            : c.size() - k + 1; // 両端のある多面体
+      int n = (c.isCycle() && c.size() > k)
+             ? c.size()          // 閉路中の連続するk節点の選び方
+             : c.size() - k + 1; // 単純パス中の連続するk節点の選び方
       for (int h = 0; h < n; h++) {
-        // 連結成分cのh番要素からk個の立方体を選んで作った多面体の表面積
+        // 連結成分cのh番要素からk節点を選んで作った多面体の表面積
         int area = c.area(h, k);
         if (min < 0 || min > area) {
           min = area;
@@ -116,7 +117,7 @@ class Space {
       return size() != 0 && get(0).degree() == 2; // 先頭要素の次数が2
     }
 
-    /** head番以降のk個の立方体からなる多面体の表面積 */
+    /** head番以降のk節点からなる多面体の表面積 */
     int area(int head, int k) {
       boolean isCycle = (isCycle() && size() == k); // 閉路状の多面体
       int a = 0; // 表面積
