@@ -42,7 +42,6 @@ class Image {
   int h, w;
   Pixel[][] pixel;
   int nComponent; // 連結成分数
-  boolean hasBgComponent; // 背景連結成分が存在
 
   /** 画素をセット */
   void setPixel(int y, int x, boolean isBlack) {
@@ -58,6 +57,26 @@ class Image {
     }
     boolean isBlack;
     int component;
+  }
+
+  /** デバッグ出力 */
+  @Override
+  public String toString() {
+    StringBuffer str = new StringBuffer();
+    for (int y = 0; y < h; y++) {
+      for (int x = 0; x < w; x++) {
+        str.append(pixel[y][x].isBlack ? "#" : " ");
+      }
+      str.append("\n");
+    }
+    str.append("\n");
+    for (int y = 0; y < h; y++) {
+      for (int x = 0; x < w; x++) {
+        str.append(pixel[y][x].component + " ");
+      }
+      str.append("\n");
+    }
+    return str.toString();
   }
 
   /**
@@ -88,17 +107,33 @@ class Image {
    * 各画素が属する連結成分を決める
    */
   void findComponents() {
+    // 上下端に接している白連結成分を抽出
+    for (int y = 0; y < h; y += Math.max(1, h - 1)) {
+      for (int x = 0; x < w; x++) {
+        Pixel p = pixel[y][x];
+        if (p.component != 0) continue; // いずれかの連結成分に割当済み
+        if (p.isBlack) continue;
+        traverse(y, x, 1);
+      }
+    }
+
+    // 左右端に接している白連結成分を抽出
+    for (int y = 0; y < h; y++) {
+      for (int x = 0; x < w; x += Math.max(1, w - 1)) {
+        Pixel p = pixel[y][x];
+        if (p.component != 0) continue; // いずれかの連結成分に割当済み
+        if (p.isBlack) continue;
+        traverse(y, x, 1);
+      }
+    }
+
     nComponent = 1; // 連結成分数 (背景連結成分が1)
     for (int y = 0; y < h; y++) {
       for (int x = 0; x < w; x++) {
         Pixel p = pixel[y][x];
         if (p.component != 0) continue; // いずれかの連結成分に割当済み
-
-        // 背景に接している白連結成分は番号1, それ以外は番号2以上
-        int c = (x == 0 || x == w - 1 || y == 0 || y == h - 1)
-                && ! p.isBlack ? 1 : ++nComponent;
+        int c = ++nComponent;
         traverse(y, x, c);
-        if (c == 1) hasBgComponent = true; // 背景連結成分が存在
       }
     }
   }
@@ -158,8 +193,8 @@ class Image {
             surr[p.component].retainAll(set); // 共通集合
           }
         }
-        // 黒連結成分は背景連結成分に包含される (背景連結成分があれば)
-        if (p.isBlack && hasBgComponent) {
+        // 黒連結成分は背景連結成分に包含される
+        if (p.isBlack) {
           surr[p.component].add(1);
         }
       }
@@ -167,10 +202,10 @@ class Image {
 
     // 包含関係を表す木を構築
     Tree tree = new Tree();
+    tree.addRoot(1);
     for (int c = 1; c <= nComponent; c++) {
       if (surr[c] == null) continue;
       if (surr[c].isEmpty()) {
-        tree.addRoot(c);
       } else {
         int c1 = surr[c].last(); // cを包含する直近の連結成分
         tree.addEdge(c1, c);
