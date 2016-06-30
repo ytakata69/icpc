@@ -59,26 +59,6 @@ class Image {
     int component;
   }
 
-  /** デバッグ出力 */
-  @Override
-  public String toString() {
-    StringBuffer str = new StringBuffer();
-    for (int y = 0; y < h; y++) {
-      for (int x = 0; x < w; x++) {
-        str.append(pixel[y][x].isBlack ? "#" : " ");
-      }
-      str.append("\n");
-    }
-    str.append("\n");
-    for (int y = 0; y < h; y++) {
-      for (int x = 0; x < w; x++) {
-        str.append(pixel[y][x].component + " ");
-      }
-      str.append("\n");
-    }
-    return str.toString();
-  }
-
   /**
    * 2画像が同じ文字を表しているか
    */
@@ -107,33 +87,23 @@ class Image {
    * 各画素が属する連結成分を決める
    */
   void findComponents() {
-    // 上下端に接している白連結成分を抽出
-    for (int y = 0; y < h; y += Math.max(1, h - 1)) {
-      for (int x = 0; x < w; x++) {
-        Pixel p = pixel[y][x];
-        if (p.component != 0) continue; // いずれかの連結成分に割当済み
-        if (p.isBlack) continue;
-        traverse(y, x, 1);
-      }
-    }
-
-    // 左右端に接している白連結成分を抽出
+    // 背景連結成分を抽出. 連結成分番号は1
     for (int y = 0; y < h; y++) {
-      for (int x = 0; x < w; x += Math.max(1, w - 1)) {
-        Pixel p = pixel[y][x];
-        if (p.component != 0) continue; // いずれかの連結成分に割当済み
-        if (p.isBlack) continue;
-        traverse(y, x, 1);
-      }
+      if (! pixel[y][0]  .isBlack) findComponent(y, 0,   1);
+      if (! pixel[y][w-1].isBlack) findComponent(y, w-1, 1);
+    }
+    for (int x = 0; x < w; x++) {
+      if (! pixel[0]  [x].isBlack) findComponent(0,   x, 1);
+      if (! pixel[h-1][x].isBlack) findComponent(h-1, x, 1);
     }
 
+    // 背景連結成分以外の連結成分を抽出
     nComponent = 1; // 連結成分数 (背景連結成分が1)
     for (int y = 0; y < h; y++) {
       for (int x = 0; x < w; x++) {
-        Pixel p = pixel[y][x];
-        if (p.component != 0) continue; // いずれかの連結成分に割当済み
-        int c = ++nComponent;
-        traverse(y, x, c);
+        if (pixel[y][x].component == 0) { // まだ連結成分に所属していない
+          findComponent(y, x, ++nComponent);
+        }
       }
     }
   }
@@ -145,9 +115,9 @@ class Image {
    * 同じ連結成分の画素を訪問し, 連結成分に加える.
    * @param c 連結成分番号
    */
-  private void traverse(int y, int x, int c) {
+  private void findComponent(int y, int x, int c) {
     Pixel p = pixel[y][x];
-    if (p.component != 0) return; // 訪問済み
+    if (p.component != 0) return; // いずれかの連結成分に所属済み
     p.component = c;
 
     // 各方向
@@ -156,7 +126,7 @@ class Image {
       int y2 = y + dy[i];
       if (x2 < 0 || x2 >= w || y2 < 0 || y2 >= h) continue;
       if (p.isBlack == pixel[y2][x2].isBlack) { // 同じ色
-        traverse(y2, x2, c);
+        findComponent(y2, x2, c);
       }
     }
   }
@@ -203,10 +173,8 @@ class Image {
     // 包含関係を表す木を構築
     Tree tree = new Tree();
     tree.addRoot(1);
-    for (int c = 1; c <= nComponent; c++) {
-      if (surr[c] == null) continue;
-      if (surr[c].isEmpty()) {
-      } else {
+    for (int c = 2; c <= nComponent; c++) {
+      if (surr[c] != null && ! surr[c].isEmpty()) {
         int c1 = surr[c].last(); // cを包含する直近の連結成分
         tree.addEdge(c1, c);
       }
@@ -216,7 +184,7 @@ class Image {
 }
 
 /**
- * 包含関係を表す木
+ * 包含関係を表す木.
  */
 class Tree {
   /** 2つの木が同型か */
@@ -226,21 +194,16 @@ class Tree {
     if (! (obj instanceof Tree)) return false;
     Tree that = (Tree)obj;
 
-    // 最外連結成分が白なら1, 黒なら2
-    if (this.rootId != that.rootId) return false;
-
     // Node#equalsに帰着
     return this.root.equals(that.root);
   }
 
-  void addRoot(int root) {
-    this.rootId = root;
-    this.root   = addNode(root);
-  }
-
-  int  rootId; // 根の連結成分番号
   Node root;
   Map<Integer, Node> nodeSet = new HashMap<>();
+
+  void addRoot(int root) {
+    this.root = addNode(root);
+  }
 
   void addEdge(int parent, int child) {
     Node node = addNode(child);
@@ -253,6 +216,7 @@ class Tree {
     return node;
   }
 
+  /** 節点を表すクラス. idはデバッグ出力のために保持している. */
   class Node {
     int id;
     List<Node> children = new LinkedList<>();
@@ -277,28 +241,29 @@ class Tree {
       Node that = (Node)obj;
 
       // 子を並び替えると等価 (第i子同士が等価) になるか
-      return permutation(this.children, that.children);
+      return permutationEq(this.children, that.children);
     }
   }
 
   /**
+   * 同じ型のリストmutatedとpeerに対し,
    * mutatedを並び替えるとpeerと等価 (第i要素同士が等価) になるとき,
    * かつそのときに限り, <code>true</code>を返す
    */
-  static <E> boolean permutation(List<E> mutated, List<E> peer) {
+  static <E> boolean permutationEq(List<E> mutated, List<E> peer) {
     if (mutated.size() != peer.size()) return false;
     if (mutated.isEmpty()) return true;
 
     for (int i = 0; i < mutated.size(); i++) {
       E m = mutated.get(i);
-      E p = peer.get(0);
+      E p = peer   .get(0);
       if (m.equals(p)) {
         mutated.remove(i);
-        peer.remove(0);
-        boolean success = permutation(mutated, peer);
+        peer   .remove(0);
+        boolean success = permutationEq(mutated, peer);
 
         // 元に戻す
-        peer.add(0, p);
+        peer   .add(0, p);
         mutated.add(i, m);
         if (success) return true;
       }
