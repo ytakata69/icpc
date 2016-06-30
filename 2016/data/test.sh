@@ -10,12 +10,19 @@ data=../data
 for p in $problems
 do
   (cd ../$p
-   echo javac $p.java
-   javac $p.java
-   for n in 1 2 3 4
+   for var in "" 2
    do
-     echo java $p '<' $data/$p$n '|' diff - $data/$p$n.ans
-     java $p < $data/$p$n | diff - $data/$p$n.ans
+     j=$p$var
+     if [ -f $j.java ]
+     then
+       echo javac $j.java
+       javac $j.java
+       for n in 1 2 3 4
+       do
+         echo java $p '<' $data/$p$n '|' diff - $data/$p$n.ans
+         java $p < $data/$p$n | diff - $data/$p$n.ans
+       done
+     fi
    done
   )
 done
