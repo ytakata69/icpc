@@ -99,12 +99,7 @@ class Space {
     c.add(p);
     p.joined = true;
     if (p.degree() == 0) return;
-    if (! p.prev.joined) { // next→pの順に訪問した
-      Position tmp = p.prev;
-      p.prev = p.next;
-      p.next = tmp;
-    }
-    traverse(c, p.next);
+    traverse(c, !p.n1.joined ? p.n1 : p.n2);
   }
 
   /**
@@ -119,16 +114,22 @@ class Space {
 
     /** head番以降のk節点からなる多面体の表面積 */
     int area(int head, int k) {
-      boolean isCycle = (isCycle() && size() == k); // 閉路状の多面体
-      int a = 0; // 表面積
+      int area = 6 * s * s * k; // k個の立方体の表面積
+
+      // 端 (head番) の一つ前
+      Position prev = null;
+      if (isCycle() && size() == k) { // 閉路状の多面体
+        prev = get((head - 1 + size()) % size());
+      }
+      // 隠されている表面積を引く
       for (int i = 0; i < k; i++) {
         Position p = get((head + i) % size());
-        // pの表面積からp.prev, p.nextに隠される表面積を引く
-        a += 6 * s * s
-           - (isCycle || i > 0     ? p.hiddenBy(p.prev) : 0)
-           - (isCycle || i < k - 1 ? p.hiddenBy(p.next) : 0);
+        if (prev != null) {
+          area -= p.hiddenBy(prev) + prev.hiddenBy(p);
+        }
+        prev = p;
       }
-      return a;
+      return area;
     }
 
     @Override
@@ -162,13 +163,13 @@ class Space {
       this.z = z;
     }
     int x, y, z;
-    Position prev, next;
-    boolean joined; // いずれかの連結成分に所属済み
+    Position n1, n2; // 隣接する場所
+    boolean joined;  // いずれかの連結成分に所属済み
 
     /** 次数 */
     int degree() {
-      return (prev == null && next == null) ? 0 :
-             (prev == null || next == null) ? 1 : 2;
+      return (n1 == null && n2 == null) ? 0 :
+             (n1 == null || n2 == null) ? 1 : 2;
     }
 
     /** 場所thatと隣接しているか */
@@ -178,15 +179,10 @@ class Space {
           && Math.abs(this.z - that.z) < s;
     }
 
-    /**
-     * 隣接場所を登録.
-     * とりあえずprevから先に登録.
-     * あとで連結成分に分ける際, 連結成分の代表に近い側をprev,
-     * 他方をnextに変える.
-     */
+    /** 隣接場所を登録 */
     void addAdj(Position p) {
-      if (prev == null) prev = p;
-      else              next = p;
+      if (n1 == null) n1 = p;
+      else            n2 = p;
     }
 
     /**
