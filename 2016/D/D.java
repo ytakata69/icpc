@@ -93,7 +93,13 @@ class D {
     /** 終了ブロック番号による比較 */
     @Override
     public int compareTo(Interval that) {
-      return this.f - that.f;
+      return this.f == that.f ? this.s - that.s : this.f - that.f;
+    }
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == null || ! (obj instanceof Interval)) return false;
+      Interval that = (Interval)obj;
+      return this.s == that.s && this.f == that.f;
     }
     @Override
     public String toString() {
