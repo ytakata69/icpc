@@ -23,32 +23,32 @@ class D {
   static int solve(int[] w) {
     int n = w.length; // ブロック数
 
-    // cost[i][j]: 区間[i,j]における最小ブロック残数
-    int[][] cost = new int[n][n];
+    // erasable[i][j]: 区間[i,j]における最大消去可能ブロック数
+    int[][] erasable = new int[n][n];
 
     for (int i = 0; i < n; i++) {
-      cost[i][i] = 1; // 1ブロックだけの区間は消せないのでコスト1
+      erasable[i][i] = 0; // 1ブロックだけの区間は消せない
     }
 
     for (int l = 1; l < n; l++) { // 区間の長さ
-      // cost[i][i + l]を求める
+      // erasable[i][i + l]を求める
       for (int i = 0; i < n - l; i++) {
         // 中央部を消した後両端を消せる
-        if ((l == 1 || cost[i + 1][i + l - 1] == 0) &&
+        if ((l == 1 || erasable[i + 1][i + l - 1] == l - 1) &&
             Math.abs(w[i] - w[i + l]) <= 1)
         {
-          cost[i][i + l] = 0;
+          erasable[i][i + l] = l + 1;
           continue;
         }
-        // 2つに区切ったときの最小コスト
-        int min = Integer.MAX_VALUE;
+        // 2つに区切ったときの最大消去可能数
+        int max = 0;
         for (int m = 0; m < l; m++) {
-          min = Math.min(min, cost[i][i + m] + cost[i + m + 1][i + l]);
+          max = Math.max(max, erasable[i][i + m] + erasable[i + m + 1][i + l]);
         }
-        cost[i][i + l] = min;
+        erasable[i][i + l] = max;
       }
     }
-    return n - cost[0][n-1]; // 消せるブロック数
+    return erasable[0][n-1];
   }
 
 }
