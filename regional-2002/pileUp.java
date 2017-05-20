@@ -37,13 +37,10 @@ class Masato {
      * @param m  The number of cubes.
      */
     Masato(int m) {
-        cube = new Cube[m + 1];
-        for (int i = 1; i <= m; i++) {
-            cube[i] = new Cube(i);
-        }
+        cubeSet = new CubeSet(m);
     }
 
-    Cube[] cube;
+    CubeSet cubeSet;
 
     /**
      * Pile up cube i onto cube j.
@@ -54,24 +51,22 @@ class Masato {
     void pile(int i, int j) {
         if (i == j) { return; } // do nothing
 
-        if (j != 0 && cube[i].inSamePile(cube[j])) {
-            if (cube[i].isAbove(cube[j])) { return; } // do nothing
+        if (j != 0 && cubeSet.inSamePile(i, j)) {
+            if (cubeSet.isAbove(i, j)) { return; } // do nothing
         }
-        if (j == 0 && cube[i].isBottom()) { return; } // do nothing
+        if (j == 0 && cubeSet.isBottom(i)) { return; } // do nothing
 
-        cube[i].takeOffThisAndAboveCubes();
-        if (j == 0) {
-            cube[i].putOntoFloor();
-        } else {
-            cube[i].putOnto(cube[j]);
+        cubeSet.takeOffThisAndAboveCubes(i);
+        if (j != 0) {
+            cubeSet.putOnto(i, j);
         }
     }
 
     void printResult() {
         List<Integer> heights = new ArrayList<>();
-        for (int i = 1; i < cube.length; i++) {
-            if (cube[i].isTop()) {
-                heights.add(cube[i].pos + 1);
+        for (int i = 1; i <= cubeSet.nCube(); i++) {
+            if (cubeSet.isTop(i)) {
+                heights.add(cubeSet.position(i) + 1);
             }
         }
         Collections.sort(heights);
@@ -82,63 +77,64 @@ class Masato {
     }
 }
 
-class Cube {
-    int id;
-    int pos;        // position from the bottom (the bottom == 0)
-    Cube bottom;    // the bottom of the pile that this cube belongs to
-    Cube top;       // the top of ---
-    Cube above;     // the next cube
-    Cube below;     // the previous cube
+class CubeSet {
+    int[] position; // position from the bottom (the bottom == 0)
+    int[] bottom;   // the bottom of the pile that this cube belongs to
+    int nCube;
 
-    Cube(int id) {
-        this.id     = id;
-        this.bottom = this;    // on the floor
-        this.top    = this;    // a singleton
-        this.pos    = 0;
+    CubeSet(int nCube) {
+        this.nCube = nCube;
+        position = new int[nCube + 1];
+        bottom   = new int[nCube + 1];
+        for (int i = 1; i <= nCube; i++) {
+            position[i] = 0;
+            bottom  [i] = i;    // itself
+        }
     }
 
-    boolean inSamePile(Cube that) {
-        return this.bottom == that.bottom;
+    int nCube() { return nCube; }
+    int position(int i) { return position[i]; }
+
+    boolean inSamePile(int i, int j) {
+        return bottom[i] == bottom[j];
     }
 
-    boolean isAbove(Cube that) {
-        return this.pos > that.pos;
+    boolean isAbove(int i, int j) {
+        return position[i] > position[j];
     }
 
-    boolean isTop() {
-        return this.top == this;
+    boolean isTop(int i) {
+        return topOfPileContaining(i) == i;
     }
 
-    boolean isBottom() {
-        return this.bottom == this;
+    boolean isBottom(int i) {
+        return position[i] == 0;
     }
 
-    void takeOffThisAndAboveCubes() {
-        for (Cube p = this; p != null; p = p.above) {
-            if (p.below != null) {      // not on the floor
-                p.below.above = null;   // take off
-                p.below.top   = p.below;
+    int topOfPileContaining(int i) {
+        int top = i;
+        for (int j = 1; j <= nCube; j++) {
+            if (inSamePile(j, top) && isAbove(j, top)) {
+                top = j;
             }
-            p.below  = null;
-            p.bottom = p;       // on the floor
-            p.pos    = 0;
+        }
+        return top;
+    }
+
+    void takeOffThisAndAboveCubes(int i) {
+        int pile = bottom[i];
+        int pos  = position[i];
+        for (int j = 1; j <= nCube; j++) {
+            if (bottom[j] == pile && position[j] >= pos) {
+                bottom  [j] = j;
+                position[j] = 0;
+            }
         }
     }
 
-    void putOntoFloor() {
-        this.bottom = this;
-        this.below  = null;
-        this.pos    = 0;
-    }
-
-    void putOnto(Cube that) {
-        that.top.above = this;
-        this.below     = that.top;
-        this.pos       = that.top.pos + 1;
-        this.bottom    = that.bottom;
-        for (Cube p = this; p != null; p = p.below) {
-            p.top = this;
-        }
+    void putOnto(int i, int j) {
+        bottom  [i] = bottom[j];
+        position[i] = position[topOfPileContaining(j)] + 1;
     }
 
 }
