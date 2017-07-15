@@ -1,11 +1,21 @@
+/*
+ * ACM-ICPC 2017 Tsukuba, Japan Online First-Round Contest
+ * A: Taro's shopping
+ */
 #include <stdio.h>
 
 #define MAX_N  1000
 
+/**
+ * @param n  商品数
+ * @param m  金額
+ * @param a  各商品の価格
+ */
 void solve(int n, int m, int a[])
 {
   int i, j, max;
   max = 0;
+  /* すべての組(i,j)を調べる */
   for (i = 0; i < n; i++) {
     for (j = i + 1; j < n; j++) {
       int p = a[i] + a[j];
