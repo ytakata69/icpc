@@ -35,7 +35,7 @@ class Explorer {
   }
 
   void setMap(int x, int y, char c) {
-    map[y][x] = (c == '.' ? 0 : c);
+    map[y][x] = (c == '.' ? 0 : -1);
   }
 
   /** for debug */
@@ -69,21 +69,23 @@ class Explorer {
     int dir = 0;   // 進行方向。東南西北 = 0,1,2,3
     int color = 1; // 地図に塗る色。どの宝 (または出口) に向かっているかを表す。
     while (true) {
-      // 1回目は 2 * color, 2回目 (引き返すとき) は 2 * color + 1 を塗る
-      map[y][x] = 2 * color + (map[y][x] != 0 ? 1 : 0);
+      // 通った印に色を塗る (どの宝へ向かっているか & 進行方向)
+      map[y][x] |= (color << 4) | (1 << dir);
       int d;
       for (d = -1; d <= 2; d++) { // 左→前→右→後の順に試す (左手の法則)
         int dd = (dir + d + 4) % 4;  // dd = dir + d (mod 4)
         int xx = x + vx[dd];
         int yy = y + vy[dd];
         if (xx < 0 || xx >= M || yy < 0 || yy >= N) { continue; }
-        if (map[yy][xx] == '#') { continue; } // 壁
+        if (map[yy][xx] == -1) { continue; } // 壁
         if (xx == goalX[color] && yy == goalY[color]) {
           if (color == 4) { return true; }
           color++; // 次の宝を目指す
         }
-        if (0 < map[yy][xx] && map[yy][xx] < 2 * color) { continue; } // 通過済
-        if (map[yy][xx] > 2 * color) { continue; }  // すでに2回通った
+        // 古い色で塗られていたら通過済み
+        if (0 < map[yy][xx] && map[yy][xx] < color << 4) { continue; }
+        // 同じ色でもループしていたらやめる
+        if ((map[yy][xx] & (1 << dd)) != 0) { continue; }
         x = xx;
         y = yy;
         dir = dd;
