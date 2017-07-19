@@ -69,8 +69,8 @@ class Explorer {
     int dir = 0;   // 進行方向。東南西北 = 0,1,2,3
     int color = 1; // 地図に塗る色。どの宝 (または出口) に向かっているかを表す。
     while (true) {
-      // 通った印に色を塗る (どの宝へ向かっているか & 進行方向)
-      map[y][x] |= (color << 4) | (1 << dir);
+      // 通った場所に色を塗る (どの宝へ向かっているか & 何回目)
+      map[y][x] = (color << 3) | ((map[y][x] & 7) + 1);
       int d;
       for (d = -1; d <= 2; d++) { // 左→前→右→後の順に試す (左手の法則)
         int dd = (dir + d + 4) % 4;  // dd = dir + d (mod 4)
@@ -83,9 +83,9 @@ class Explorer {
           color++; // 次の宝を目指す
         }
         // 古い色で塗られていたら通過済み
-        if (0 < map[yy][xx] && map[yy][xx] < color << 4) { continue; }
-        // 同じ色でもループしていたらやめる
-        if ((map[yy][xx] & (1 << dd)) != 0) { continue; }
+        if (0 < map[yy][xx] && map[yy][xx] < color << 3) { continue; }
+        // 同じ色でも4回通っていたらやめる
+        if ((map[yy][xx] & 7) >= 4) { continue; }
         x = xx;
         y = yy;
         dir = dd;
