@@ -90,22 +90,18 @@ abstract class Expression implements Comparable<Expression> {
 
   /**
    * 考慮対象であるすべての式からなる集合
-   * (「指定の要素以下で最大の要素」を返す関数 floor() を持つ)
+   * (NavigableSet は指定の要素以下で最大の要素を返す関数 floor() を持つ)
    */
   static NavigableSet<Expression> allSet;
   static {
-    allSet = new ExpSet();
+    allSet = new ExpSet();  // 等価な式は文字列長の短いもののみ格納する集合
 
-    // 定数
-    allSet.add(new ConstantExp(0));
-    allSet.add(new ConstantExp(1));
-
-    // リテラル
+    // 正負リテラル
     final char[] vars = { 'a', 'b', 'c', 'd' };
     for (char v : vars) {
       Expression e = new VariableExp(v);
       allSet.add(e);
-      allSet.add(new NegationExp(e));
+      allSet.add(new NegationExp(e)); // -a, -b, -c, -d
     }
 
     // 二項演算子の入れ子が3段以下の式 (それより長い式は考えなくてよい)
@@ -114,20 +110,24 @@ abstract class Expression implements Comparable<Expression> {
       for (Expression e1 : allSet) {
         for (Expression e2 : allSet) {
           // * も ^ も可換なので e1 > e2 の場合は不要。
-          // * はべき等。x ^ x == 0 なので e1 == e2 の場合も不要。
+          // * はべき等, x ^ x == 0 なので e1 == e2 の場合も不要。
           if (e1.compareTo(e2) >= 0) { continue; }
           set.add(new BinaryExp('*', e1, e2));
           set.add(new BinaryExp('^', e1, e2));
         }
       }
       allSet.addAll(set);
-      for (Expression e : set) { allSet.add(new NegationExp(e)); }
+      for (Expression e : set) { allSet.add(new NegationExp(e)); } // -e
     }
+
+    // 定数 (途中に定数を含む式は考えなくてよい)
+    allSet.add(new ConstantExp(0));
+    allSet.add(new ConstantExp(1));
   }
 
   /**
-   * TreeSet<Expression> とほとんど同じだが，等価な式を add
-   * しようとしたとき，文字列長が短ければ更新する。
+   * TreeSet<Expression> とほとんど同じだが，
+   * 等価な式を add しようとしたとき，文字列長が短ければ更新する。
    */
   static class ExpSet extends TreeSet<Expression> {
     @Override
@@ -143,27 +143,31 @@ abstract class Expression implements Comparable<Expression> {
   }
 }
 
-/** 定数 0 または 1 */
+/**
+ * 定数 0, 1
+ */
 class ConstantExp extends Expression {
   int val;
   ConstantExp(int val) {
     this.val  = val;
-    this.code = val * 65535;  // 全部0 or 全部1
+    this.code = val * 0xffff;  // 0 or 0xffff
   }
   @Override
   public int length() { return 1; }
   @Override
-  public String toString() { return Integer.toString(val); }
+  public String toString() { return "" + val; }
 }
 
-/** 変数 a, b, c, d */
+/**
+ * 変数 a, b, c, d
+ */
 class VariableExp extends Expression {
   char var;
   VariableExp(char var) {
     this.var  = var;
     this.code = 0;
-    for (int i = 0; i < 16; i++) {
-      if ((i & (1 << (var - 'a'))) != 0) {
+    for (int i = 0; i < 16; i++) {          // すべての入力
+      if ((i & (1 << (var - 'a'))) != 0) {  // 当該変数が1
         this.code |= (1 << i);
       }
     }
@@ -171,15 +175,17 @@ class VariableExp extends Expression {
   @Override
   public int length() { return 1; }
   @Override
-  public String toString() { return Character.toString(var); }
+  public String toString() { return "" + var; }
 }
 
-/** 否定演算子 */
+/**
+ * 否定演算子 -
+ */
 class NegationExp extends Expression {
   Expression exp;
   NegationExp(Expression exp) {
     this.exp  = exp;
-    this.code = exp.code ^ 65535;  // 真偽反転
+    this.code = exp.code ^ 0xffff;  // 真偽反転
   }
   @Override
   public int length() { return 1 + exp.length(); }
@@ -187,7 +193,9 @@ class NegationExp extends Expression {
   public String toString() { return "-" + exp; }
 }
 
-/** 二項演算子 *, ^ */
+/**
+ * 二項演算子 *, ^
+ */
 class BinaryExp extends Expression {
   char op;
   Expression left, right;
