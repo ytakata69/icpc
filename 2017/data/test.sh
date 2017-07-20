@@ -3,7 +3,7 @@
 problems=$@
 
 case x"$problems" in
-x) problems='A B C D E G' ;;
+x) problems='A B C D E F G' ;;
 esac
 
 for p in $problems
