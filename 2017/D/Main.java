@@ -46,18 +46,24 @@ class Solver {
     return bruteForce(0, new BitSet(), 0);
   }
 
-  int bruteForce(int pos, BitSet bits, int size) {
+  /**
+   * 再帰的に全部分集合を試す
+   * @param pos  処理中の位置 (0..n-1)
+   * @param sum  bitSet[0..pos-1]のある部分集合 (の総xor)
+   * @param size bitSet[0..pos-1]のある部分集合 (の要素数)
+   */
+  int bruteForce(int pos, BitSet sum, int size) {
     if (pos >= n) { // 再帰の終端
-      // 和が0なら要素数, 和が非0なら0を返す
-      return bits.isEmpty() ? size : 0;
+      // 和が0なら要素数を返す
+      return sum.isEmpty() ? size : 0;
     }
     // bitSet[pos]を加えない場合
-    int a1 = bruteForce(pos + 1, bits, size);
+    int a1 = bruteForce(pos + 1, sum, size);
 
     // bitSet[pos]を加えた場合
-    bits.xor(bitSet[pos]);
-    int a2 = bruteForce(pos + 1, bits, size + 1);
-    bits.xor(bitSet[pos]); // 元に戻す
+    sum.xor(bitSet[pos]);
+    int a2 = bruteForce(pos + 1, sum, size + 1);
+    sum.xor(bitSet[pos]); // 元に戻す
 
     return Math.max(a1, a2);
   }
