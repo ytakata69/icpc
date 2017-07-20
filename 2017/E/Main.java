@@ -11,9 +11,8 @@ class Main {
       String e = scanner.next();
       if (e.equals(".")) { break; }
       Expression exp = new Parser(e).parse();
-      Expression sim = Expression.allSet.floor(exp); // 最も近い要素
-      if (!sim.equals(exp)) { throw new RuntimeException("" + sim); }
-      System.out.println(sim.toString().length());
+      Expression can = Expression.canonicalForm(exp);
+      System.out.println(can.length());
     }
   }
 }
@@ -44,7 +43,7 @@ class Parser {
       return new VariableExp(c);
     case '-':
       pos++;
-      return new NegationExp(parse());
+      return new NegativeExp(parse());
     case '(':
       pos++;
       Expression left  = parse();
@@ -69,7 +68,7 @@ abstract class Expression implements Comparable<Expression> {
    * 第iビットが入力i (4ビット, 最下位がa, 最上位がd) に対する
    * この式の値を表す。
    */
-  int code;
+  protected int code;
 
   @Override
   public int hashCode() { return code; }
@@ -79,20 +78,25 @@ abstract class Expression implements Comparable<Expression> {
     if (!(o instanceof Expression)) { return false; }
     return compareTo((Expression)o) == 0;
   }
-
   @Override
   public int compareTo(Expression e) {
     return this.hashCode() - e.hashCode();
   }
 
   /** 文字列長を返す */
-  public int length() { return toString().length(); }
+  abstract public int length();
 
   /**
-   * 考慮対象であるすべての式からなる集合
-   * (NavigableSet は指定の要素以下で最大の要素を返す関数 floor() を持つ)
+   * 式eと等価な最簡の式を返す
    */
-  static NavigableSet<Expression> allSet;
+  public static Expression canonicalForm(Expression e) {
+    return allSet.canonicalForm(e);
+  }
+
+  /**
+   * 考慮対象であるすべての式 (の最簡形) からなる集合
+   */
+  static ExpSet allSet;
   static {
     allSet = new ExpSet();  // 等価な式は文字列長の短いもののみ格納する集合
 
@@ -101,7 +105,7 @@ abstract class Expression implements Comparable<Expression> {
     for (char v : vars) {
       Expression e = new VariableExp(v);
       allSet.add(e);
-      allSet.add(new NegationExp(e)); // -a, -b, -c, -d
+      allSet.add(new NegativeExp(e)); // -a, -b, -c, -d
     }
 
     // 二項演算子の入れ子が3段以下の式 (それより長い式は考えなくてよい)
@@ -117,30 +121,47 @@ abstract class Expression implements Comparable<Expression> {
         }
       }
       allSet.addAll(set);
-      for (Expression e : set) { allSet.add(new NegationExp(e)); } // -e
+      for (Expression e : set) { allSet.add(new NegativeExp(e)); } // -e
     }
 
     // 定数 (途中に定数を含む式は考えなくてよい)
     allSet.add(new ConstantExp(0));
     allSet.add(new ConstantExp(1));
   }
+}
+
+/**
+ * 最簡の式を保持する集合
+ */
+class ExpSet extends AbstractSet<Expression> {
+  private Map<Integer, Expression> map = new HashMap<>();
 
   /**
-   * TreeSet<Expression> とほとんど同じだが，
-   * 等価な式を add しようとしたとき，文字列長が短ければ更新する。
+   * 式eと等価な最簡の式を返す
    */
-  static class ExpSet extends TreeSet<Expression> {
-    @Override
-    public boolean add(Expression e) {
-      if (this.contains(e)) {
-        Expression f = this.floor(e);
-        if (f.length() > e.length()) {
-          this.remove(f);
-        }
-      }
-      return super.add(e);
-    }
+  public Expression canonicalForm(Expression e) {
+    return map.get(e.hashCode());
   }
+
+  /**
+   * 式eをこの集合に追加する。
+   * すでに等価でより短い式を保持している場合は追加しない。
+   * @return 追加したかどうか
+   */
+  @Override
+  public boolean add(Expression e) {
+    Expression e0 = map.get(e.hashCode());
+    if (e0 == null || e0.length() > e.length()) {
+      map.put(e.hashCode(), e);
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public int size() { return map.size(); }
+  @Override
+  public Iterator<Expression> iterator() { return map.values().iterator(); }
 }
 
 /**
@@ -181,9 +202,9 @@ class VariableExp extends Expression {
 /**
  * 否定演算子 -
  */
-class NegationExp extends Expression {
+class NegativeExp extends Expression {
   Expression exp;
-  NegationExp(Expression exp) {
+  NegativeExp(Expression exp) {
     this.exp  = exp;
     this.code = exp.code ^ 0xffff;  // 真偽反転
   }
