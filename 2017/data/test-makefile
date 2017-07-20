@@ -21,8 +21,17 @@ test-j: Main.class
 	java Main $(call pipe,3)
 	java Main $(call pipe,4)
 
+test-j2: Main2.class
+	java Main2 $(call pipe,1)
+	java Main2 $(call pipe,2)
+	java Main2 $(call pipe,3)
+	java Main2 $(call pipe,4)
+
 a.out: main.c
 	$(CC) $+ -o $@
 
-Main.class: Main.java
+%.class: %.java
 	$(JAVAC) $+
+
+clean:
+	$(RM) *.o *.class a.out *~

@@ -18,4 +18,7 @@ do
   if [ -f Main.java ]; then
     make -f ../data/test-makefile prob=$p test-j
   fi
+  if [ -f Main2.java ]; then
+    make -f ../data/test-makefile prob=$p test-j2
+  fi
 done

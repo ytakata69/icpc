@@ -38,16 +38,6 @@ class Explorer {
     map[y][x] = (c == '.' ? 0 : -1);
   }
 
-  /** for debug */
-  void showMap() {
-    for (int y = 0; y < map.length; y++) {
-      for (int x = 0; x < map[y].length; x++) {
-        System.out.print(map[y][x] == 0 ? '.' : '#');
-      }
-      System.out.println();
-    }
-  }
-
   /**
    * 北西隅から左手の法則に従って時計回りに探索する。
    * (最初に南東隅に行くと，北東と南西の両方に行くことは不可能。
