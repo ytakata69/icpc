@@ -36,7 +36,7 @@ class Solver {
 
   int solve() {
     // n が小さければ総当り, m が小さければ動的計画法
-    return n <= 23 ? bruteForce() : dynamicProgramming();
+    return n <= m ? bruteForce() : dynamicProgramming();
   }
 
   /**
@@ -69,7 +69,7 @@ class Solver {
   }
 
   /**
-   * 動的計画法で解く (m が比較的小さい場合)
+   * 動的計画法で解く (m が小さい場合)
    */
   int dynamicProgramming() {
     // table[i]: 和が i である最大部分集合の要素数
