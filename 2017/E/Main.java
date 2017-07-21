@@ -62,26 +62,14 @@ class Parser {
  * 式の真偽値表を表す整数を code として持つ
  * (式が等価 ⇔ 真偽値表が同じ)。
  */
-abstract class Expression implements Comparable<Expression> {
+abstract class Expression {
   /**
    * この式の真偽値表を表す16ビットの数。
    * 第iビットが入力i (4ビット, 最下位がa, 最上位がd) に対する
    * この式の値を表す。
    */
   protected int code;
-
-  @Override
-  public int hashCode() { return code; }
-
-  @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof Expression)) { return false; }
-    return compareTo((Expression)o) == 0;
-  }
-  @Override
-  public int compareTo(Expression e) {
-    return this.hashCode() - e.hashCode();
-  }
+  public int code() { return code; }
 
   /** 文字列長を返す */
   abstract public int length();
@@ -113,9 +101,10 @@ abstract class Expression implements Comparable<Expression> {
       Set<Expression> set = new ExpSet();  // 一時バッファ
       for (Expression e1 : allSet) {
         for (Expression e2 : allSet) {
-          // * も ^ も可換なので e1 > e2 の場合は不要。
-          // * はべき等, x ^ x == 0 なので e1 == e2 の場合も不要。
-          if (e1.compareTo(e2) >= 0) { continue; }
+          // * も ^ も可換なので e1 < e2 の場合のみ考える
+          // ((e1,e2) と (e2,e1) のちょうど一方のみ選ばれるようにする)。
+          // x * x == x, x ^ x == 0 なので e1 == e2 の場合は不要。
+          if (e1.code() >= e2.code()) { continue; }
           set.add(new BinaryExp('*', e1, e2));
           set.add(new BinaryExp('^', e1, e2));
         }
@@ -140,7 +129,7 @@ class ExpSet extends AbstractSet<Expression> {
    * 式eと等価な最簡の式を返す
    */
   public Expression canonicalForm(Expression e) {
-    return map.get(e.hashCode());
+    return map.get(e.code());
   }
 
   /**
@@ -150,9 +139,9 @@ class ExpSet extends AbstractSet<Expression> {
    */
   @Override
   public boolean add(Expression e) {
-    Expression e0 = map.get(e.hashCode());
+    Expression e0 = map.get(e.code());
     if (e0 == null || e0.length() > e.length()) {
-      map.put(e.hashCode(), e);
+      map.put(e.code(), e);
       return true;
     }
     return false;
@@ -175,8 +164,6 @@ class ConstantExp extends Expression {
   }
   @Override
   public int length() { return 1; }
-  @Override
-  public String toString() { return "" + val; }
 }
 
 /**
@@ -195,8 +182,6 @@ class VariableExp extends Expression {
   }
   @Override
   public int length() { return 1; }
-  @Override
-  public String toString() { return "" + var; }
 }
 
 /**
@@ -210,8 +195,6 @@ class NegativeExp extends Expression {
   }
   @Override
   public int length() { return 1 + exp.length(); }
-  @Override
-  public String toString() { return "-" + exp; }
 }
 
 /**
@@ -232,8 +215,4 @@ class BinaryExp extends Expression {
   }
   @Override
   public int length() { return 3 + left.length() + right.length(); }
-  @Override
-  public String toString() {
-    return "(" + left.toString() + op + right.toString() + ")";
-  }
 }
