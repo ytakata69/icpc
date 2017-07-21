@@ -35,7 +35,7 @@ class Explorer {
   }
 
   void setMap(int x, int y, char c) {
-    map[y][x] = (c == '.' ? 0 : -1);
+    map[y][x] = c;
   }
 
   /**
@@ -50,38 +50,37 @@ class Explorer {
   boolean solve() {
     final int[] vx = { 1, 0, -1,  0 }; // 東南西北
     final int[] vy = { 0, 1,  0, -1 };
-    final int[] goalX = { 0, M-1, M-1,   0, 0 }; // 宝 (と出口) の位置
-    final int[] goalY = { 0,   0, N-1, N-1, 0 };
+
+    // 宝
+    map[0]  [M-1] = '$';
+    map[N-1][M-1] = '$';
+    map[N-1][0]   = '$';
 
     // 北西隅から東に向かって探索開始
     int x = 0;     // 現在位置のX座標 (東西座標)
     int y = 0;     // 現在位置のY座標 (南北座標)
     int dir = 0;   // 進行方向。東南西北 = 0,1,2,3
-    int color = 1; // 地図に塗る色。どの宝 (または出口) に向かっているかを表す。
+    int gold = 0;  // 持っている宝の数
     while (true) {
-      // 通った場所に色を塗る (どの宝へ向かっているか & 何回目)
-      map[y][x] = (color << 3) | ((map[y][x] & 7) + 1);
+      // 通った場所に色を塗る (どの宝へ向かっているか)
+      map[y][x] = gold;
       int d;
       for (d = -1; d <= 2; d++) { // 左→前→右→後の順に試す (左手の法則)
         int dd = (dir + d + 4) % 4;  // dd = dir + d (mod 4)
         int xx = x + vx[dd];
         int yy = y + vy[dd];
         if (xx < 0 || xx >= M || yy < 0 || yy >= N) { continue; }
-        if (map[yy][xx] == -1) { continue; } // 壁
-        if (xx == goalX[color] && yy == goalY[color]) {
-          if (color == 4) { return true; }
-          color++; // 次の宝を目指す
-        }
-        // 古い色で塗られていたら通過済み
-        if (0 < map[yy][xx] && map[yy][xx] < color << 3) { continue; }
-        // 同じ色でも4回通っていたらやめる
-        if ((map[yy][xx] & 7) >= 4) { continue; }
+        // 出発地点に戻った
+        if (xx == 0 && yy == 0) { return gold >= 3; }
+        if (map[yy][xx] == '#') { continue; } // 壁
+        if (map[yy][xx] == '$') { gold++; }   // 宝
+        if (map[yy][xx] < gold) { return false; } // 古い色にぶつかった
         x = xx;
         y = yy;
         dir = dd;
         break;
       }
-      if (d > 2) { return false; }
+      if (d > 2) { return false; } // 4方向ともふさがっている
     }
   }
 

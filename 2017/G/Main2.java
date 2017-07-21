@@ -37,34 +37,33 @@ class Explorer {
   }
 
   void setMap(int x, int y, char c) {
-    map[y][x] = (c == '.' ? 0 : -1);
+    map[y][x] = c;
   }
 
   final int[] vx = { 1, 0, -1,  0 }; // 東南西北
   final int[] vy = { 0, 1,  0, -1 };
-  int[] goalX; // 宝 (と出口) の位置
-  int[] goalY;
-
-  enum Result { YES, NO, BACKTRACK }; // 探索の結果
 
   boolean solve() {
-    goalX = new int[] { M-1, M-1,   0, 0 }; // 宝 (と出口) の位置
-    goalY = new int[] {   0, N-1, N-1, 0 };
+    // 宝
+    map[0]  [M-1] = '$';
+    map[N-1][M-1] = '$';
+    map[N-1][0]   = '$';
 
     // 北西隅から東に向かって探索開始
-    return explore(0, 0, 0, 0) == Result.YES;
+    return explore(0, 0, 0, 0);
   }
 
   /**
    * 指定した位置から左手の法則に従って深さ優先探索する。
-   * @param x      現在位置のX座標
-   * @param y      現在位置のY座標
-   * @param dir    現在の進行方向 (0=東, 1=南, 2=西, 3=北)
-   * @param target どの宝 (または出口) に向かっているか
-   * @return 探索の結果 (YES=ゴールした, NO=ゴール不可能, BACKTRACK=戻る)
+   * @param x    現在位置のX座標
+   * @param y    現在位置のY座標
+   * @param dir  現在の進行方向 (0=東, 1=南, 2=西, 3=北)
+   * @param gold 持っている宝の数
    */
-  Result explore(int x, int y, int dir, int target) {
-    map[y][x] = 1; // 通った場所に色を塗る (0でなければ何でも)
+  boolean explore(int x, int y, int dir, int gold) {
+    if (map[y][x] == '$') { gold++; } // お宝get
+
+    map[y][x] = 0; // 通った場所に色を塗る ('.'でなければ何でも)
 
     // 左→前→右の順に試す (左手の法則)
     for (int d = -1; d <= 1; d++) {
@@ -72,26 +71,15 @@ class Explorer {
       int xx = x + vx[dd];
       int yy = y + vy[dd];
       if (xx < 0 || xx >= M || yy < 0 || yy >= N) { continue; }
-      if (map[yy][xx] == -1) { continue; }
+      // 出発地点に戻った
+      if (xx == 0 && yy == 0) { return gold >= 3; }
+      if (map[yy][xx] == '#') { continue; } // 壁
+      if (map[yy][xx] == 0)   { continue; } // 通過済み
 
-      if (xx == goalX[target] && yy == goalY[target]) {
-        target++; // 次の宝を目指す
-        if (target == 4) { return Result.YES; }
-      }
-      // 壁または通過済み
-      if (map[yy][xx] != 0) { continue; }
-
-      // 一歩進む (結果がわかったら探索打ち切り)
-      switch (explore(xx, yy, dd, target)) {
-      case YES: return Result.YES;
-      case NO:  return Result.NO;
-      }
+      // 一歩進む (成功したら探索打ち切り)
+      if (explore(xx, yy, dd, gold)) { return true; }
     }
-    // 前の宝まで戻ってしまったら失敗
-    if (target > 0 && x == goalX[target-1] && y == goalY[target-1]) {
-      return Result.NO;
-    }
-    return Result.BACKTRACK;
+    return false;
   }
 
 }
