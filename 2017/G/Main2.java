@@ -63,7 +63,7 @@ class Explorer {
   boolean explore(int x, int y, int dir, int gold) {
     if (map[y][x] == '$') { gold++; } // お宝get
 
-    map[y][x] = 0; // 通った場所に色を塗る ('.'でなければ何でも)
+    map[y][x] = '#'; // 通った場所に色を塗る
 
     // 左→前→右の順に試す (左手の法則)
     for (int d = -1; d <= 1; d++) {
@@ -73,8 +73,7 @@ class Explorer {
       if (xx < 0 || xx >= M || yy < 0 || yy >= N) { continue; }
       // 出発地点に戻った
       if (xx == 0 && yy == 0) { return gold >= 3; }
-      if (map[yy][xx] == '#') { continue; } // 壁
-      if (map[yy][xx] == 0)   { continue; } // 通過済み
+      if (map[yy][xx] == '#') { continue; } // 壁 or 通過済み
 
       // 一歩進む (成功したら探索打ち切り)
       if (explore(xx, yy, dd, gold)) { return true; }
