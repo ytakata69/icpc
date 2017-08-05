@@ -4,7 +4,7 @@
 # ACM-ICPC 2017 Tsukuba, Japan Online First-Round Contest
 # A: Taro's shopping
 
-import sys, re
+import sys
 
 # @param n  商品数
 # @param m  金額
@@ -21,7 +21,7 @@ def solve(n, m, a):
 
 
 def splitIntoNums(line):
-  words = re.split(r'\s+', line.strip())  # split into words
+  words = line.strip().split()            # split into words
   return [int(w) for w in words]          # convert to integers
 
 while True:

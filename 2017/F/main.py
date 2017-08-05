@@ -7,7 +7,7 @@
 # Runnable on both Python 2 and 3,
 # though the bit length of int type must be >= 64 in Python 2.
 
-import sys, re
+import sys
 
 # 折りたたみ系列を返す。
 # @param n 折りたたみ回数
@@ -43,7 +43,7 @@ def solve(n, y, x):
   return sequence
 
 for line in sys.stdin:
-  words = re.split(r'\s+', line.strip())  # 単語に分解
+  words = line.strip().split()            # 単語に分解
   n, i, j = [int(w) for w in words]       # intに変換
   if n == 0 and i == 0 and j == 0: break
   print(solve(n, i, j))
