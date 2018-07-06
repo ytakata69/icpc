@@ -3,54 +3,45 @@
 
 
 def solve(n, match):
-    global count, n0, n1
+    global count, table, n01
     count = 0
     table = [[None for a in range(n)] for t in range(n)]
     for x, y in match:
         table[x-1][y-1] = 1
         table[y-1][x-1] = 0 
-    n0 = [sum(1 for y in range(n) if table[x][y] == 0) for x in range(n)]
-    n1 = [sum(1 for y in range(n) if table[x][y] == 1) for x in range(n)]
-    search(table)
+    n01 = [[sum(1 for y in range(n) if table[x][y] == i) for x in range(n)]
+           for i in range(2)]
+    search(0)
     return count
 
-def emptyCell(table):
+def valid(x):
+    global table, n01
     n = len(table)
-    for y in range(n):
-        for x in range(n):
-            if x != y and table[x][y] == None:
-                return x, y
-    return -1, -1
+    return n01[0][x] <= (n-1)//2 and n01[1][x] <= (n-1)//2
 
-def valid(table, x):
+def search(pos):
+    global count, table, n01
     n = len(table)
-    return n0[x] <= (n-1)//2 and n1[x] <= (n-1)//2
-
-def search(table):
-    global count
-    x, y = emptyCell(table)
-    if x < 0:
+    x = pos // n
+    y = pos %  n
+    if pos >= n * n:
         count += 1
         return
+    if x == y or table[x][y] != None:
+        search(pos + 1)
+        return
 
-    table[x][y] = 1
-    table[y][x] = 0
-    n1[x] += 1
-    n0[y] += 1
-    if valid(table, x) and valid(table, y):
-        search(table)
-    n1[x] -= 1
-    n0[y] -= 1
-    table[x][y] = 0
-    table[y][x] = 1
-    n0[x] += 1
-    n1[y] += 1
-    if valid(table, x) and valid(table, y):
-        search(table)
-    n0[x] -= 1
-    n1[y] -= 1
-    table[x][y] = None
-    table[y][x] = None
+    for i in range(2):
+        table[x][y] = 1 - i
+        table[y][x] = i
+        n01[1-i][x] += 1
+        n01[  i][y] += 1
+        if valid(x) and valid(y):
+            search(pos + 1)
+        n01[1-i][x] -= 1
+        n01[  i][y] -= 1
+        table[x][y] = None
+        table[y][x] = None
 
 while True:
     n = int(input())

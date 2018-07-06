@@ -12,23 +12,6 @@ struct Match {
 int count;
 int table[MAX_N][MAX_N];
 
-struct Match emptyCell(int n)
-{
-  struct Match m;
-  int x, y;
-  for (y = 0; y < n; y++) {
-    for (x = 0; x < n; x++) {
-      if (x != y && table[x][y] == None) {
-        m.x = x;
-        m.y = y;
-        return m;
-      }
-    }
-  }
-  m.x = m.y = -1;
-  return m;
-}
-
 int valid(int n, int x)
 {
   int n0, n1;
@@ -41,29 +24,29 @@ int valid(int n, int x)
   return n0 <= (n-1)/2 && n1 <= (n-1)/2;
 }
 
-void search(int n)
+void search(int n, int pos)
 {
-  struct Match m;
-  int x, y;
-  m = emptyCell(n);
-  x = m.x;
-  y = m.y;
-  if (x < 0) {
+  int x, y, i;
+  if (pos >= n * n) {
     count += 1;
     return;
   }
-  table[x][y] = 1;
-  table[y][x] = 0;
-  if (valid(n, x) && valid(n, y)) {
-    search(n);
+  x = pos / n;
+  y = pos % n;
+  if (x == y || table[x][y] != None) {
+    search(n, pos + 1);
+    return;
   }
-  table[x][y] = 0;
-  table[y][x] = 1;
-  if (valid(n, x) && valid(n, y)) {
-    search(n);
+
+  for (i = 0; i <= 1; i++) {
+    table[x][y] = 1 - i;
+    table[y][x] = i;
+    if (valid(n, x) && valid(n, y)) {
+      search(n, pos + 1);
+    }
+    table[x][y] = None;
+    table[y][x] = None;
   }
-  table[x][y] = None;
-  table[y][x] = None;
 }
 
 int solve(int n, struct Match match[], int m)
@@ -79,7 +62,7 @@ int solve(int n, struct Match match[], int m)
     table[match[i].x-1][match[i].y-1] = 1;
     table[match[i].y-1][match[i].x-1] = 0;
   }
-  search(n);
+  search(n, 0);
   return count;
 }
 
