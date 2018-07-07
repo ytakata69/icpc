@@ -2,17 +2,16 @@
 # -*- coding: utf-8 -*-
 
 def solve(b):
-    S = [0]
-    lo = 0
-    hi = 1
-    while True:
-        S.append(S[-1] + hi)
-        while S[hi] - S[lo] > b:
+    s  = 0
+    lo = 1
+    for hi in range(1, b+1):
+        s += hi
+        while s > b:
+            s  -= lo
             lo += 1
-        if S[hi] - S[lo] == b:
-            break
-        hi += 1
-    return lo + 1, hi - lo
+        if s == b:
+            return lo, hi - lo + 1
+    raise
 
 while True:
     b = int(input())
