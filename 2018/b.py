@@ -14,14 +14,14 @@ def solve(n, m, Fold, Punch):
                 if n < 2 * c:
                     Thick[y] += [0] * (2 * c - n)
                 for x in range(c):
-                    Thick[y][x + c] += Thick[y][x]
+                    Thick[y][2 * c - 1 - x] += Thick[y][x]
                 Thick[y] = Thick[y][c:]
         else:
             if m < 2 * c:
                 Thick += [[0] * n for i in range(2 * c - m)]
             for y in range(c):
                 for x in range(n):
-                    Thick[y + c][x] += Thick[y][x]
+                    Thick[2 * c - 1 - y][x] += Thick[y][x]
             Thick = Thick[c:]
 
     for x, y in Punch:
