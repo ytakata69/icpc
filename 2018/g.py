@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import sys
+sys.setrecursionlimit(1010)
+
 class Parser:
     def __init__(self, s):
         self.str = s
@@ -51,7 +54,7 @@ class Exp:
             for i in range(len(self.terms)):
                 a = 1
                 for f in self.terms[i]:
-                    a *= Exp.factor(f)
+                    a *= f if type(f) is int else f.value()
                 self.termval[i] = a
             self.val = sum(self.termval)
         return self.val
@@ -65,6 +68,7 @@ class Exp:
         left  = 1  # loが含まれるtermの値
         mid   = 0  # loとhiの中間のtermの値
         right = 0  # hiが含まれるtermの値
+        n1 = None  # 連続する1の個数
 
         # hiを動かす
         for ht in range(len(self.terms)):
@@ -82,10 +86,11 @@ class Exp:
                     right *= Exp.factor(x)
 
                 # loを動かす
-                while left + mid + right > v:
+                while left + mid + right > v and (lt < ht or lf < hf):
                     left //= Exp.factor(self.terms[lt][lf])
                     nlt, nlf = self.nextfactor(lt, lf)
                     if lt < nlt:
+                        assert left == 1
                         if nlt < ht:
                             left = self.termval[nlt]
                             mid -= left
@@ -93,15 +98,22 @@ class Exp:
                             left  = right
                             right = 0
                     lt, lf = nlt, nlf
+                    n1 = None  # キャッシュを消す
 
                 # vと一致していればcountを増やす
                 if left + mid + right == v:
                     count += 1
-                    if self.terms[lt][lf] == 1:
+                    if Exp.factor(self.terms[lt][lf]) == 1:
                         # 1が連続している場合はその個数分増やす
-                        for i in range(lf + 1, len(self.terms[lt])):
-                            count += 1  # 1が0個の場合も数える
-                            if self.terms[lt][i] != 1: break
+                        if n1 == None:
+                            n1 = 0
+                            for i in range(lf, len(self.terms[lt])):
+                                if Exp.factor(self.terms[lt][i]) != 1: break
+                                n1 += 1
+                        n1x = hf - lf if lt == ht and hf < lf + n1 else n1
+                        # 末尾のfactorが1の場合，それは削除できない
+                        if lf + n1x >= len(self.terms[lt]): n1x -= 1
+                        count += n1x
         return count
 
     @staticmethod
