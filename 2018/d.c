@@ -62,6 +62,9 @@ int solve(int n, struct Match match[], int m)
     table[match[i].x-1][match[i].y-1] = 1;
     table[match[i].y-1][match[i].x-1] = 0;
   }
+  for (i = 0; i < n; i++) {
+    if (! valid(n, i)) { return 0; }
+  }
   search(n, 0);
   return count;
 }

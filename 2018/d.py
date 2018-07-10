@@ -34,6 +34,8 @@ def solve(n, match):
         table[v][u] = 0  # lost
     nwon, nlost = [[sum(1 for y in range(n) if table[x][y] == i)
                     for x in range(n)] for i in range(2)]
+    if not all(valid(x) for x in range(n)):
+        return 0  # 初期配置が条件を満たさない
     return search(pos=0)
 
 def valid(x):
