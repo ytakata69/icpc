@@ -3,9 +3,10 @@
 
 while True:
     n = int(input())
-    if n == 0: break
-    A = [int(t) for t in input().split()]
+    if n == 0:
+        break
+    A = list(map(int, input().split()))
     assert len(A) == n
 
-    ave = sum(A) / n
+    ave = sum(A) // n
     print(sum(1 for a in A if a <= ave))
