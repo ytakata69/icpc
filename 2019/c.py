@@ -16,18 +16,17 @@ def solve(A, W):
     assert len(A) <= 100
     assert len(W) <= 10
 
-    C = set()
-    for t in triseq(len(W)):
-        C.add(innerprod(t, W))  # |C| <= 3 ** len(W)
+    C = set(innerprod(t, W) for t in triseq(len(W)))  # |C| <= 3 ** m
 
-    diff = [a for a in A if a not in C]
-    if len(diff) == 0:
+    D = [a for a in A if a not in C]   # D = A - C
+    if len(D) == 0:
         return 0
 
-    cand = [abs(diff[0] - c) for c in C]  # diff[0] - c or c - diff[0]
-    cand.sort()
-    for w in cand:
-        if all((d + w) in C or (d - w) in C for d in diff):
+    # candidates of the new weight
+    Wx = [abs(D[0] - c) for c in C]    # D[0] - c or c - D[0]
+    Wx.sort()
+    for w in Wx:
+        if all((d + w) in C or (d - w) in C for d in D):
             return w
     return -1
 

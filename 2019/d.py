@@ -11,15 +11,15 @@ def solve(m, A, B):
 def score(diff, m):
     if len(diff) == 0: return 0
     if len(diff) == 1: return diff[0]
-    D = list(zip(diff, range(len(diff))))
+    D = [(d, i) for i, d in enumerate(diff)]
     D.sort()
     S = float('inf')
-    for d, t in D:
-        s = score(diff[:t], m) + score(diff[t + 1:], m)
-        if 0 < t < len(diff) - 1:
-            s -= diff[t]
+    for d, i in D:
+        s = score(diff[:i], m) + score(diff[i + 1:], m)
+        if 0 < i < len(diff) - 1:
+            s -= diff[i]
         S = min(S, s)
-        diff[t] += m
+        diff[i] += m
     return S
 
 while True:
