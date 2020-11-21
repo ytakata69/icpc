@@ -1,26 +1,23 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env pypy3
 
 def solve(m, A, B):
-    assert len(A) == len(B) <= 1000
-    assert m <= 10000
+    # カウンタ毎の必要な操作回数
+    C = [b - a for a, b in zip(A, B)]
+    C = [c if c >= 0 else c + m for c in C]
 
-    diff = [(b - a + m) % m for a, b in zip(A, B)]
-    return score(diff, m)
-
-def score(diff, m):
-    if len(diff) == 0: return 0
-    if len(diff) == 1: return diff[0]
-    D = [(d, i) for i, d in enumerate(diff)]
-    D.sort()
-    S = float('inf')
-    for d, i in D:
-        s = score(diff[:i], m) + score(diff[i + 1:], m)
-        if 0 < i < len(diff) - 1:
-            s -= diff[i]
-        S = min(S, s)
-        diff[i] += m
-    return S
+    c0 =  0  # 直前のカウンタの操作回数
+    cs = [0] # 直前のカウンタの操作回数がc0, c0+m, c0+2m, ...のときの操作回数
+    for i, c in enumerate(C):
+        cs1 = []
+        for j in range(i + 1):
+            j0 = min(j, len(cs) - 1)
+            j1 = min(j + 1, len(cs) - 1) if c >= c0 else max(0, j - 1)
+            cnt2 = min(cs[j0] + max(0, c - c0 + (j - j0) * m),
+                       cs[j1] + max(0, c - c0 + (j - j1) * m))
+            cs1.append(cnt2)
+        c0 = c
+        cs = cs1
+    return min(cs)
 
 while True:
     n, m = map(int, input().split())
