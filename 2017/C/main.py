@@ -1,10 +1,7 @@
-#!/usr/bin/python
-# coding: utf-8
+#!/usr/bin/env python3
 
 # ACM-ICPC 2017 Tsukuba, Japan Online First-Round Contest
 # C: A Garden with Ponds
-
-import sys
 
 def solve(d, w, e):
   m = 0;
@@ -18,7 +15,7 @@ def solve(d, w, e):
   return m
 
 def fence(e, x, y, w, d):
-  # the list of the cells that form the fence
+  '''the list of the cells that form the fence'''
   ff = e[y][x : x + w] + e[y + d - 1][x : x + w]
   for i in range(y + 1, y + d - 1):
     ff.append(e[i][x])
@@ -26,21 +23,15 @@ def fence(e, x, y, w, d):
   return min(ff)
 
 def pond(e, x, y, w, d, f):
-  # the list of the cells that form the pond
+  '''the list of the cells that form the pond'''
   ee = []
   for i in range(y + 1, y + d - 1):
     ee.extend(e[i][x + 1 : x + w - 1])
-  if max(ee) >= f: return 0
-  return f * len(ee) - sum(ee)
-
-def splitIntoNums(line):
-  words = line.strip().split()            # split into words
-  return [int(w) for w in words]          # convert to integers
+  return f * len(ee) - sum(ee) if max(ee) < f else 0
 
 while True:
-  d, w = splitIntoNums(sys.stdin.readline())
-  if d == 0 and w == 0: break
-  e = []
-  for y in range(d):
-    e.append(splitIntoNums(sys.stdin.readline()))
+  d, w = map(int, input().split())
+  if d == 0 and w == 0:
+    break
+  e = [list(map(int, input().split())) for y in range(d)]
   print(solve(d, w, e))
