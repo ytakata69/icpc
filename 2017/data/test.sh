@@ -21,4 +21,7 @@ do
   if [ -f Main2.java ]; then
     make -f ../data/test-makefile prob=$p test-j2
   fi
+  if [ -f main.ml ]; then
+    make -f ../data/test-makefile prob=$p test-ocaml
+  fi
 done
