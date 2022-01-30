@@ -5,29 +5,42 @@
 
 open List
 
-type result_t = Tie | Winner of (char * int)
+(* Python's enumerate: enumerate [a;b;c] => [(0,a);(1,b);(2,c)] *)
+let enumerate ls =
+  let rec enum' i = function
+    [] -> [] | x::rest -> (i, x) :: enum' (i+1) rest
+  in enum' 0 ls
+
+(* 配列中の最大値を取る添字とその最大値. ただし添字excludeを除く *)
+let array_max_index ?(exclude=(-1)) ary =
+  snd (Array.fold_left
+         (fun (i, (mi, m)) x ->
+            (i + 1, if i <> exclude && x > m then (i, x) else (mi, m)))
+         (0, (-1, min_int)) ary)
+
+(* 結果を表すヴァリアント *)
+type result_t = Tie | Winner of char * int
 
 let solve n votes =
-  (* 得票数 *)
-  let gained = ref
-    (init 26 (fun i -> (char_of_int (i + int_of_char 'A'), 0))) in
+  (* 'A'--'Z'と0--25の相互変換 *)
+  let int_of_alph c = int_of_char c - int_of_char 'A'
+  and alph_of_int i = char_of_int (i + int_of_char 'A') in
 
-  snd
-    (fold_left (* 各票について *)
-       (fun (i, res) c -> (* i=何票目か, res=暫定結果, c=投票先 *)
-          (* 候補者cの得票数を更新 *)
-          let g = assoc c !gained in
-          gained := remove_assoc c !gained;
-          gained := (c, g + 1) :: !gained;
-          (* 得票数の降順に整列 *)
-          gained := sort (fun (_, g1) (_, g2) -> g2 - g1) !gained;
-          let (topc, topg) = nth !gained 0    (* 1位 *)
-          and (sndc, sndg) = nth !gained 1 in (* 2位 *)
-          let remain = n - (i + 1) in (* 残り投票数 *)
-          (i + 1, if topg > sndg + remain && res = Tie
-                  then Winner (topc, i + 1) else res))
-       (0, Tie)
-       votes)
+  (* 得票数 *)
+  let gained = Array.make 26 0 in
+
+  fold_left            (* 各票について *)
+    (fun res (i, c) -> (* res=暫定結果, i=何票目か, c=投票先 *)
+       (* cの得票数を更新 *)
+       gained.(int_of_alph c) <- gained.(int_of_alph c) + 1;
+       (* 得票数1位と2位 *)
+       let (top_i, top_g) = array_max_index gained in
+       let (snd_i, snd_g) = array_max_index ~exclude:top_i gained in
+       let remain = n - (i + 1) in (* 残り票数 *)
+       (* 初めて勝利が決定したら結果を更新 *)
+       if res = Tie && top_g > snd_g + remain
+         then Winner (alph_of_int top_i, i + 1) else res)
+    Tie (enumerate votes)
 
 (* 標準入力から空白区切りの文字の列を読み出す *)
 let read_char_list () =
