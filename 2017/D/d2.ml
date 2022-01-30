@@ -5,17 +5,26 @@
 
 open List
 
-(* 0-1文字列のXOR *)
-let xor s1 s2 =
-  let m = String.length s1 in
-  String.init m (fun i -> if s1.[i] <> s2.[i] then '1' else '0')
-
 (* stringをキーとするMap *)
 module StrMap = Map.Make(String)
+
+(* 文字列のXOR *)
+let xor s1 s2 =
+  String.init (String.length s1)
+    (fun i -> char_of_int ((int_of_char s1.[i]) lxor (int_of_char s2.[i])))
+
+(* '0'と'1'の文字列を8ビット1文字の文字列に圧縮 *)
+let packed_string str =
+  let len = String.length str in
+  let size = len / 8 + if len mod 8 > 0 then 1 else 0 in
+  String.init size (fun i ->
+    let sublen = min 8 (len - i * 8) in
+    char_of_int (int_of_string ("0b" ^ String.sub str (i * 8) sublen)))
 
 (* Mapを使った動的計画法 *)
 let solve n m recipes =
   let zero = String.make m '0' in (* 全材料の残り0 *)
+  let zero = packed_string zero in
 
   (* 各残り方に対してそれが得られる最大レシピ数を返すMap *)
   let init_tbl = StrMap.singleton zero 0 in
@@ -23,6 +32,8 @@ let solve n m recipes =
   let final_tbl =
     fold_left  (* レシピごとにtblを更新 *)
       (fun cur_tbl recipe ->
+         let recipe = packed_string recipe in
+
          StrMap.fold (fun k v tbl -> (* cur_tbl中の各残り方について *)
              (* recipeを試したときの残り方と試したレシピ数 *)
              let new_k = xor k recipe in
