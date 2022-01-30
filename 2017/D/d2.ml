@@ -9,20 +9,19 @@ open List
 let solve_by_dp n m recipes =
   (* intに変換 *)
   let int_recipes = map (fun s -> int_of_string ("0b" ^ s)) recipes in
-  let p2m = 1 lsl m in (* 2^m *)
-  let tbl = Array.make p2m (-1) in  (* 全要素 -1 *)
-  tbl.(0) <- 0;  (* 全材料の残り0, 試したレシピ数0 *)
+  (* 2^m通りの各残り方に対し, それが得られるレシピ数 *)
+  let tbl = Array.make (1 lsl m) (-1) in
+  tbl.(0) <- 0;  (* 残り方0 -> 試したレシピ数0 *)
 
   let final_tbl =
     fold_left  (* レシピごとにtblを更新 *)
       (fun tbl recipe ->
          let newtbl = Array.copy tbl in
-         for i = 0 to p2m - 1 do
-           if tbl.(i) >= 0 then
-             let j = i lxor recipe  (* recipeを試したときの残り方 *)
-             and v = tbl.(i) + 1 in (* 試し済みレシピ数 + 1 *)
-             newtbl.(j) <- max newtbl.(j) v
-         done;
+         Array.iteri (fun i v ->
+           if v >= 0 then
+             let j = i lxor recipe in (* recipeを試したときの残り方 *)
+             newtbl.(j) <- max newtbl.(j) (v + 1))
+           tbl;
          newtbl)
       tbl int_recipes
   in
@@ -32,7 +31,7 @@ let solve_by_dp n m recipes =
 let xor s1 s2 =
   let m = String.length s1 in
   String.init m (fun i -> if s1.[i] <> s2.[i] then '1' else '0')
-  
+
 (* 全探索 (n <= 23) *)
 let solve_by_bruteforce n m recipes =
   let zero = String.make m '0' in
