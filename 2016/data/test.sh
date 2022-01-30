@@ -23,6 +23,14 @@ do
          java $p < $data/$p$n | diff - $data/$p$n.ans
        done
      fi
+     jl=`echo $j | tr '[:upper:]' '[:lower:]'`
+     if [ -f $jl.ml ]; then
+       for n in 1 2 3 4
+       do
+         echo ocaml $jl.ml '<' $data/$p$n '|' diff - $data/$p$n.ans
+         ocaml $jl.ml < $data/$p$n | diff - $data/$p$n.ans
+       done
+     fi
    done
   )
 done
