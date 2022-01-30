@@ -5,8 +5,8 @@
 
 open List
 
-(* 動的計画法 (m < 23) *)
-let solve_by_dp n m recipes =
+(* 配列を使った動的計画法 (m < 23) *)
+let solve_with_array n m recipes =
   (* intに変換 *)
   let int_recipes = map (fun s -> int_of_string ("0b" ^ s)) recipes in
   (* 2^m通りの各残り方に対し, それが得られるレシピ数 *)
@@ -32,23 +32,35 @@ let xor s1 s2 =
   let m = String.length s1 in
   String.init m (fun i -> if s1.[i] <> s2.[i] then '1' else '0')
 
-(* 全探索 (n <= 23) *)
-let solve_by_bruteforce n m recipes =
-  let zero = String.make m '0' in
+(* stringをキーとするMap *)
+module StrMap = Map.Make(String)
 
-  (* 各レシピについて試す・試さないをすべて調べる.
-     used=試し済みレシピ数, remain=材料の残り方 *)
-  let rec bruteforce used remain = function
-      [] -> if remain = zero then used else 0
-    | recipe :: rest ->
-        max (bruteforce used remain rest)  (* recipeを試さない *)
-            (bruteforce (used + 1) (xor remain recipe) rest)  (* 試す *)
+(* Mapを使った動的計画法 (n <= 23) *)
+let solve_with_map n m recipes =
+  let zero = String.make m '0' in (* 全材料の残り0 *)
+
+  (* 各残り方に対してそれが得られる最大レシピ数を返すMap *)
+  let init_tbl = StrMap.singleton zero 0 in
+
+  let final_tbl =
+    fold_left  (* レシピごとにtblを更新 *)
+      (fun cur_tbl recipe ->
+         StrMap.fold (fun k v tbl -> (* cur_tbl中の各残り方について *)
+             (* recipeを試したときの残り方と試したレシピ数 *)
+             let new_k = xor k recipe in
+             let new_v = if StrMap.mem new_k tbl
+                         then max (StrMap.find new_k tbl) (v + 1)
+                         else v + 1 in
+             StrMap.add new_k new_v tbl) (* 新しいtbl *)
+           cur_tbl cur_tbl)
+      init_tbl recipes
   in
-  bruteforce 0 zero recipes
+  (* 全材料の残りが0となる最大レシピ数 *)
+  StrMap.find zero final_tbl
 
 let solve n m recipes =
-  if n > m then solve_by_dp n m recipes
-           else solve_by_bruteforce n m recipes
+  if n > m then solve_with_array n m recipes
+           else solve_with_map   n m recipes
 
 (* 標準入力から空白区切りの整数の列を読み出す *)
 let read_int_list () =
