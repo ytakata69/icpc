@@ -5,7 +5,7 @@
 
 open List
 
-(* 奇数番目と偶数番目の2リストに分ける *)
+(* 奇数・偶数番目の2リストに分ける. splitter [3;1;5;4;2] => ([3;5;2],[1;4]) *)
 let rec splitter = function
     [] -> ([], [])
   | x::rest -> let (left, right) = splitter rest in (x::right, left)
