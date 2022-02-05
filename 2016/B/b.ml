@@ -27,7 +27,7 @@ let solve n votes =
   and alph_of_int i = char_of_int (i + int_of_char 'A') in
 
   (* 得票数 *)
-  let gained = Array.make 26 0 in
+  let gained = Array.make (int_of_alph 'Z' + 1) 0 in
 
   fold_left            (* 各票について *)
     (fun res (i, c) -> (* res=暫定結果, i=何票目か, c=投票先 *)
