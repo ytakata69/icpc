@@ -8,12 +8,11 @@ open List
 (* Python's range: range 1 4 => [1; 2; 3] *)
 let range n m = if m > n then init (m - n) ((+) n) else []
 
-(* 2リストの直積:
-   cartesian [1;2;3] [4;5] => [(1,4);(1,5);(2,4);(2,5);(3,4);(3,5)] *)
+(* 直積: cartesian [1;2;3] [4;5] => [(1,4);(1,5);(2,4);(2,5);(3,4);(3,5)] *)
 let cartesian l1 l2 =
   flatten (map (fun x -> map (fun y -> (x, y)) l2) l1)
 
-(* 名前の通りの便利関数 *)
+(* 名前通りの便利関数 *)
 let list_max = fold_left max min_int
 let list_min = fold_left min max_int
 let list_sum = fold_left (+) 0
@@ -23,12 +22,12 @@ let solve d w garden =
   let garray = Array.of_list (map Array.of_list garden) in
   let height_at (x, y) = garray.(y).(x) in
 
+  (* すべてのXY座標のリスト *)
+  let xys = cartesian (range 0 w) (range 0 d) in
   (* (x, y)を左上隅とする長方形のリスト *)
   let every_fence (x, y) =
     map (fun (fw, fd) -> (x, y, fw, fd))
       (cartesian (range 3 (w - x + 1)) (range 3 (d - y + 1))) in
-  (* すべてのXY座標のリスト *)
-  let xys = cartesian (range 0 w) (range 0 d) in
   (* すべての長方形のリスト *)
   let fences = flatten (map every_fence xys) in
 
@@ -36,10 +35,10 @@ let solve d w garden =
   let fence_height (x, y, fw, fd) =
     (* 外周上の全座標 *)
     let fence_xys =
-      (cartesian [x] (range y (y + fd))) @
-      (cartesian [x + fw - 1] (range y (y + fd))) @
-      (cartesian (range x (x + fw)) [y]) @
-      (cartesian (range x (x + fw)) [y + fd - 1]) in
+      cartesian [x] (range y (y + fd)) @
+      cartesian [x + fw - 1] (range y (y + fd)) @
+      cartesian (range x (x + fw)) [y] @
+      cartesian (range x (x + fw)) [y + fd - 1] in
     (* 最小の高さ *)
     list_min (map height_at fence_xys)
   in
@@ -58,6 +57,8 @@ let solve d w garden =
   in
   (* 最大の容量 *)
   list_max (map pond_capacity fences)
+
+(* ----- 以下は入出力 ----- *)
 
 (* 標準入力から空白区切りの整数の列を読み出す *)
 let read_int_list () =

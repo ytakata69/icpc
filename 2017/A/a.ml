@@ -15,6 +15,8 @@ let solve m prices =
   (* m以下の要素の最大値 *)
   fold_left max 0 (filter ((>=) m) (flatten sums))
 
+(* ----- 以下は入出力 ----- *)
+
 (* 標準入力から空白区切りの整数の列を読み出す *)
 let read_int_list () =
   map int_of_string (String.split_on_char ' ' (read_line ()))

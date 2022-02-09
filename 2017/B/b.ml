@@ -10,7 +10,7 @@ let rec splitter = function
     [] -> ([], [])
   | x::rest -> let (left, right) = splitter rest in (x::right, left)
 
-(* リスト中のvの個数 *)
+(* リスト中の値vの個数 *)
 let count v ls = length (filter ((=) v) ls)
 
 let solve s1 s2 =
@@ -19,13 +19,15 @@ let solve s1 s2 =
   and t2 = String.split_on_char '"' s2 in
   if length t1 <> length t2 then "DIFFERENT"
   else
-    (* 等しいか等しくないかのリストを作り, 奇数番目と偶数番目に分け,
+    (* 等しいか否か (true/false) のリストを作り, 奇数番目と偶数番目に分け,
        falseの個数を数える *)
     let (outer, inner) = splitter (map2 (=) t1 t2) in
     let (outer, inner) = (count false outer, count false inner) in
     if outer > 0 || inner > 1 then "DIFFERENT"
     else if inner = 0 then "IDENTICAL"
     else "CLOSE"
+
+(* ----- 以下は入出力 ----- *)
 
 let rec main () =
   let s1 = read_line () in

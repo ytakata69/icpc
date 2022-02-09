@@ -3,13 +3,14 @@
  * A: Taro's shopping
  *)
 
-(* a faster algorithm *)
+(* Sorting + O(n) algorithm *)
 
 open List
 
 let solve n m prices =
   (* ソート & 配列に変換 *)
   let table = Array.of_list (sort compare prices) in
+
   (* 配列の両端から探索 *)
   let rec search i j acc =
     if i >= j then acc else
@@ -17,6 +18,8 @@ let solve n m prices =
       if p <= m then search (i + 1) j (max acc p)
                 else search i (j - 1) acc
   in search 0 (n - 1) 0
+
+(* ----- 以下は入出力 ----- *)
 
 (* 標準入力から空白区切りの整数の列を読み出す *)
 let read_int_list () =
