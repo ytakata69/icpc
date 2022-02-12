@@ -5,12 +5,6 @@
 
 open List
 
-(* Python's enumerate: enumerate [a;b;c] => [(0,a);(1,b);(2,c)] *)
-let enumerate ls =
-  let rec enum' i = function
-    [] -> [] | x::rest -> (i, x) :: enum' (i+1) rest
-  in enum' 0 ls
-
 (* 配列中の最大値を取る添字とその最大値. ただし添字excludeを除く *)
 let array_max_index ?(exclude=(-1)) ary =
   snd (Array.fold_left
@@ -29,18 +23,20 @@ let solve n votes =
   (* 得票数 *)
   let gained = Array.make (int_of_alph 'Z' + 1) 0 in
 
-  fold_left            (* 各票について *)
-    (fun res (i, c) -> (* res=暫定結果, i=何票目か, c=投票先 *)
+  snd (fold_left       (* 各票について *)
+    (fun (i, res) c -> (* i=何票目か, res=暫定結果, c=投票先 *)
        (* cの得票数を更新 *)
        gained.(int_of_alph c) <- gained.(int_of_alph c) + 1;
        (* 得票数1位と2位 *)
        let (top_i, top_g) = array_max_index gained in
        let (snd_i, snd_g) = array_max_index ~exclude:top_i gained in
-       let remain = n - (i + 1) in (* 残り票数 *)
-       (* 初めて勝利が決定したら結果を更新 *)
-       if res = Tie && top_g > snd_g + remain
-         then Winner (alph_of_int top_i, i + 1) else res)
-    Tie (enumerate votes)
+       (i + 1,
+         (* 初めて勝利が決定したら結果を更新 *)
+         if res = Tie && top_g > snd_g + (n - i)
+           then Winner (alph_of_int top_i, i) else res))
+    (1, Tie) votes)
+
+(* ----- 以下は入出力 ----- *)
 
 (* 標準入力から空白区切りの文字の列を読み出す *)
 let read_char_list () =
