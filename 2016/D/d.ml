@@ -31,6 +31,8 @@ let solve n weights =
   done;
   removable.(n - 1).(0)
 
+(* ----- 以下は入出力 ----- *)
+
 (* 標準入力から空白区切りの整数の列を読み出す *)
 let read_int_list () =
   map int_of_string (String.split_on_char ' ' (read_line ()))
