@@ -22,39 +22,37 @@ let solve d w garden =
   let garray = Array.of_list (map Array.of_list garden) in
   let height_at (x, y) = garray.(y).(x) in
 
-  (* すべてのXY座標のリスト *)
-  let xys = cartesian (range 0 w) (range 0 d) in
-  (* (x, y)を左上隅とする長方形のリスト *)
-  let every_fence (x, y) =
-    map (fun (fw, fd) -> (x, y, fw, fd))
-      (cartesian (range 3 (w - x + 1)) (range 3 (d - y + 1))) in
-  (* すべての長方形のリスト *)
-  let fences = flatten (map every_fence xys) in
-
-  (* 外周(x, y, fw, fd)の高さ *)
-  let fence_height (x, y, fw, fd) =
+  (* 長方形((x1, y1), (x2, y2))の外周の高さ *)
+  let fence_height ((x1, y1), (x2, y2)) =
     (* 外周上の全座標 *)
     let fence_xys =
-      cartesian [x] (range y (y + fd)) @
-      cartesian [x + fw - 1] (range y (y + fd)) @
-      cartesian (range x (x + fw)) [y] @
-      cartesian (range x (x + fw)) [y + fd - 1] in
+      cartesian [x1] (range y1 (y2 + 1)) @
+      cartesian [x2] (range y1 (y2 + 1)) @
+      cartesian (range (x1 + 1) x2) [y1] @
+      cartesian (range (x1 + 1) x2) [y2] in
     (* 最小の高さ *)
     list_min (map height_at fence_xys)
   in
 
-  (* 長方形(x, y, fw, fd)を外周とする池の容量 *)
-  let pond_capacity (x, y, fw, fd) =
+  (* 長方形((x1, y1), (x2, y2))を外周とする池の容量 *)
+  let pond_capacity ((x1, y1), (x2, y2)) =
     (* 外周の高さ *)
-    let fh = fence_height (x, y, fw, fd) in
-    (* 外周の内側の全座標 *)
-    let inner_xys =
-      cartesian (range (x + 1) (x + fw - 1)) (range (y + 1) (y + fd - 1)) in
+    let fh = fence_height ((x1, y1), (x2, y2)) in
+    (* 内側の全座標 *)
+    let inner_xys = cartesian (range (x1 + 1) x2) (range (y1 + 1) y2) in
     (* 各座標の外周からの深さ *)
-    let dps = map (fun (x, y) -> fh - height_at (x, y)) inner_xys in
+    let depth = map (fun (x, y) -> fh - height_at (x, y)) inner_xys in
     (* すべて外周より低ければ深さの和を返す *)
-    if list_min dps > 0 then list_sum dps else 0
+    if list_min depth > 0 then list_sum depth else 0
   in
+
+  (* すべてのXY座標 *)
+  let xys = cartesian (range 0 w) (range 0 d) in
+  (* すべての長方形 *)
+  let fences = filter
+    (fun ((x1, y1), (x2, y2)) -> x1 + 2 <= x2 && y1 + 2 <= y2)
+    (cartesian xys xys) in
+
   (* 最大の容量 *)
   list_max (map pond_capacity fences)
 
