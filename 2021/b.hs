@@ -17,13 +17,13 @@ main = do
         main
 
 solve :: Int -> Int -> [[Int]] -> Bool
-solve w h xyn = dfs Set.empty [1]
-    where xy = [(x, y + w) | [x, y, _] <- xyn]
-          adj = xy ++ map swap xy  -- bidirectional adjacency list
-          dfs visited [] = Set.size visited == w + h  -- has visited all?
-          dfs visited (x : stack) =
+solve w h xyn =
+    w + h == (Set.size $ dfs Set.empty 1)  -- has visited all?
+    where xy = [(x, -y) | [x, y, _] <- xyn]  -- edges among w+h vertices
+          adj = xy ++ map swap xy  -- make the edges bidirectional
+          dfs visited x =
               let ys = filter (not.(`Set.member` visited)) $ lookupAll x adj
-              in  dfs (Set.insert x visited) (ys ++ stack)
+              in  foldl dfs (Set.insert x visited) ys
 
 lookupAll :: Eq k => k -> [(k,v)] -> [v]
 lookupAll k = map snd . filter ((== k) . fst)
