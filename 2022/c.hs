@@ -14,7 +14,8 @@ main = do
 
 solve :: Int -> Int -> Int
 solve n 0 = n ^ 2
-solve n m = maximum $ map (splitRepose n m) [1..min m (n+1)]
+solve n m = snd . last . takeWhile (uncurry (<=)) $ zip (head gs : gs) gs
+    where gs = map (splitRepose n m) [1..min m (n+1)]
 
 -- split reposes into s segments
 splitRepose :: Int -> Int -> Int -> Int
