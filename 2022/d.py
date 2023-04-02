@@ -11,33 +11,30 @@ def solve(s, t, k):
     """s[i]=人iの座席番号, t[j]=j番目に入場すべき座席番号, k=ゲート数"""
 
     n = len(s)  # 人数
-    t = {tj: j for j, tj in enumerate(t)}  # 座席番号 -> 入場順
+    entrank = {tj: j for j, tj in enumerate(t)}  # 座席番号 -> 入場順
 
     # 必ず切断すべき位置 (= 入場順が逆転する位置)
-    cut = set(i for i in range(1, n) if t[s[i-1]] > t[s[i]])
+    cut = set(i for i in range(1, n) if entrank[s[i-1]] > entrank[s[i]])
 
     # ゲートが足りなければ失敗
     if len(cut) + 1 > k:
         return 0
 
-    # group[i] = 切断位置で区間に分けたときの人iのグループ番号
-    group = [0]  # 人0のグループ
+    # group[x] = 切断位置で区間に分けたときの座席xのグループ番号
+    group = {s[0]: 0}  # 人0のグループ番号は0
     for i in range(1, n):
-        group.append(group[-1] + (1 if i in cut else 0))
+        group[s[i]] = group[s[i-1]] + (1 if i in cut else 0)
 
-    s = list(zip(s, group))  # (座席番号, グループ番号)
-    s.sort(key=lambda x: t[x[0]])  # 入場順に整列
-
-    # mx[j] = max(s[:j])
-    mx = [(0, 0)]
+    # mx[j] = max(t[:j])
+    mx = [0]
     for j in range(1, n):
-        mx.append(max(mx[-1], s[j - 1]))
+        mx.append(max(mx[-1], t[j - 1]))
 
     # 切断不可能位置 (= 座席番号が逆転)
-    notcut = set(j for j in range(n) if s[j] < mx[j])
+    notcut = set(j for j in range(n) if t[j] < mx[j])
 
     # グループ間で座席番号が逆転していたら失敗
-    if any(s[j][1] != mx[j][1] for j in notcut):
+    if any(group[t[j]] != group[mx[j]] for j in notcut):
         return 0
 
     # m個の切断可能位置のうち最大l箇所を切る
