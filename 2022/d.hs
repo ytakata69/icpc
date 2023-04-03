@@ -4,6 +4,7 @@
 -- Problem D: Audience Queue
 
 import Control.Monad (when, replicateM)
+import Control.Applicative ((<$>))
 import qualified Data.Map as Map
 import Data.Maybe (fromJust)
 import Data.Function (on)

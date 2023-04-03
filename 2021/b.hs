@@ -4,6 +4,7 @@
 -- Problem B: Hundred-Cell Calculation Puzzles
 
 import Control.Monad (when, replicateM)
+import Control.Applicative ((<$>))
 import Data.Tuple (swap)
 import qualified Data.Set as Set
 

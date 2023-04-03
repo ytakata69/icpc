@@ -4,6 +4,7 @@
 -- Problem C: Training Schedule for ICPC
 
 import Control.Monad (when)
+import Control.Applicative ((<$>))
 
 main :: IO ()
 main = do

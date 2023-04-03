@@ -4,6 +4,7 @@
 -- Problem B: Leave No One Behind
 
 import Control.Monad (when, replicateM)
+import Control.Applicative ((<$>))
 import Data.List (sort)
 import qualified Data.Map as Map
 

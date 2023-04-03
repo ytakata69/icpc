@@ -4,6 +4,7 @@
 -- Problem A: Marbles Tell Your Lucky Number
 
 import Control.Monad (when)
+import Control.Applicative ((<$>))
 import Data.List (sort)
 
 main :: IO ()

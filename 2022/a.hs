@@ -4,6 +4,7 @@
 -- Problem A: Counting Peaks of Infection
 
 import Control.Monad (when)
+import Control.Applicative ((<$>))
 
 main :: IO ()
 main = do
