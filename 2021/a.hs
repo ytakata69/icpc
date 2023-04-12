@@ -11,14 +11,14 @@ main :: IO ()
 main = do
     cups <- map read . words <$> getLine :: IO [Int]
     when (cups /= [0, 0, 0, 0]) $ do
-        print $ luckey cups
+        print $ lucky cups
         main
 
-luckey :: [Int] -> Int
-luckey cups = luckey' . filter ((>0) . fst) $ zip cups [0..]
+lucky :: [Int] -> Int
+lucky cups = lucky' . filter ((>0) . fst) $ zip cups [0..]
 
-luckey' :: [(Int, Int)] -> Int
-luckey' cs =
+lucky' :: [(Int, Int)] -> Int
+lucky' cs =
     let ((m, i) : cs') = sort cs in
         if null cs' then m
-        else luckey' $ (m, i) : [(m' - m, j) | (m', j) <- cs', m' > m]
+        else lucky' $ (m, i) : [(m' - m, j) | (m', j) <- cs', m' > m]
