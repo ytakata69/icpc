@@ -18,7 +18,7 @@ main = do
         main
 
 solve :: [Int] -> Int
-solve bs = maximum . map score $ Set.toList dp
+solve bs = maximum . map (score . unpair) $ Set.toList dp
     where
         total = sum bs
         onethird = total `div` 3
@@ -27,13 +27,19 @@ solve bs = maximum . map score $ Set.toList dp
                                                  $ filter (ltleft  onethird) ls
                            n2 = map (addright b) $ filter (ltright onethird) ls
                        in  Set.union dp $ on Set.union Set.fromList n1 n2
-        dp = foldr updater (Set.singleton (0, 0)) $ sort bs
+        dp = foldr updater (Set.singleton $ pair (0, 0)) $ sort bs
         score (b1, b2) = min b1 (total - b1 - b2)
 
 -- utilities for pairs
 
-normpair (a, b) = if a <= b then (a, b) else (b, a)
-addleft  c (a, b) = (a + c, b)
-addright c (a, b) = (a, b + c)
-ltleft  c = (< c) . fst
-ltright c = (< c) . snd
+base = 4096
+pair (a, b) = a * base + b
+unpair ab = (ab `div` base, ab `mod` base)
+
+addleft  c ab = ab + (c * base)
+addright c ab = ab + c
+normpair = pair . normpair' . unpair
+normpair' (a, b) = if a <= b then (a, b) else (b, a)
+
+ltleft  c ab = ab < c * base
+ltright c ab = ab `mod` base < c
