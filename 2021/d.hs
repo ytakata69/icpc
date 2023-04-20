@@ -6,6 +6,7 @@
 import Control.Monad (when)
 import Control.Applicative ((<$>))
 import qualified Data.Set as Set
+import Data.Function (on)
 
 main :: IO ()
 main = do
@@ -16,13 +17,16 @@ main = do
         main
 
 solve :: [Int] -> Int
-solve bs = Set.findMax $ Set.map score dp
+solve bs = maximum . map score $ Set.toList dp
     where
-        updater dp b = let n1 = Set.map (normpair . addleft b) dp
-                           n2 = Set.map (addright b) dp
-                       in  Set.unions [dp, n1, n2]
-        dp = foldl updater (Set.singleton (0, 0)) bs
         total = sum bs
+        onethird = total `div` 3
+        updater dp b = let ls = Set.toList dp
+                           n1 = map (normpair . addleft b)
+                                                 $ filter (ltleft  onethird) ls
+                           n2 = map (addright b) $ filter (ltright onethird) ls
+                       in  Set.union dp $ on Set.union Set.fromList n1 n2
+        dp = foldl updater (Set.singleton (0, 0)) bs
         score (b1, b2) = min b1 (total - b1 - b2)
 
 -- utilities for pairs
@@ -30,3 +34,5 @@ solve bs = Set.findMax $ Set.map score dp
 normpair (a, b) = if a <= b then (a, b) else (b, a)
 addleft  c (a, b) = (a + c, b)
 addright c (a, b) = (a, b + c)
+ltleft  c = (< c) . fst
+ltright c = (< c) . snd
