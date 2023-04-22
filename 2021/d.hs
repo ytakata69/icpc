@@ -7,6 +7,7 @@ import Control.Monad (when)
 import Control.Applicative ((<$>))
 import qualified Data.Set as Set
 import Data.Function (on)
+import Data.List (sort)
 
 main :: IO ()
 main = do
@@ -21,12 +22,12 @@ solve bs = maximum . map score $ Set.toList dp
     where
         total = sum bs
         onethird = total `div` 3
-        updater dp b = let ls = Set.toList dp
+        updater b dp = let ls = Set.toList dp
                            n1 = map (normpair . addleft b)
                                                  $ filter (ltleft  onethird) ls
                            n2 = map (addright b) $ filter (ltright onethird) ls
                        in  Set.union dp $ on Set.union Set.fromList n1 n2
-        dp = foldl updater (Set.singleton (0, 0)) bs
+        dp = foldr updater (Set.singleton (0, 0)) $ sort bs
         score (b1, b2) = min b1 (total - b1 - b2)
 
 -- utilities for pairs
