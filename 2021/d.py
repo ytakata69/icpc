@@ -7,15 +7,18 @@ def normpair(a, b):
 
 def solve(bs):
     total = sum(bs)
+    onethird = total // 3
     dp = {(0, 0)}  # the numbers of baloons processed by two workers
     for b in bs:
         nextdp = set()
         for b1, b2 in dp:
-            nextdp.add(normpair(b1 + b, b2))
-            nextdp.add(normpair(b1, b2 + b))
+            if b1 < onethird:
+                nextdp.add(normpair(b1 + b, b2))
+            if b2 < onethird:
+                nextdp.add(normpair(b1, b2 + b))
         dp.update(nextdp)
 
-    return max(min(b1, b2, total - b1 - b2) for b1, b2 in each(dp))
+    return max(min(b1, b2, total - b1 - b2) for b1, b2 in dp)
 
 while True:
     n = int(input())
