@@ -13,26 +13,26 @@ def solve(n, xy):
     for x, y in xy:
         newdp = {}
         for px, py in dp:
-            # (py, px) >= (y, x)となるように(y, x)を書き換え
+            c = dp[(px, py)]
 
             if (py, px) >= (y, x):
-                update(newdp, (x, y), dp[(px, py)])
+                update(newdp, (x, y), c)
 
             # 両方書き換え
             if py != y and px != x:
-                update(newdp, (px, py), dp[(px, py)] + 2)
+                update(newdp, (px, py), c + 2)
 
             # xのみ書き換え
             if py >= y and px != x:
-                update(newdp, (px, y), dp[(px, py)] + 1)
+                update(newdp, (px, y), c + 1)
             if py > y:
-                update(newdp, (n - 1, y), dp[(px, py)] + 1)
+                update(newdp, (n - 1, y), c + 1)
 
             # yのみ書き換え
             if py != y and px >= x:
-                update(newdp, (x, py), dp[(px, py)] + 1)
+                update(newdp, (x, py), c + 1)
             if py > 0 and px < x:
-                update(newdp, (x, py - 1), dp[(px, py)] + 1)
+                update(newdp, (x, py - 1), c + 1)
         dp = newdp
 
     return min(dp.values())
