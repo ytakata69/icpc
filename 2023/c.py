@@ -9,10 +9,7 @@ def swap_col(A, indices):
     return [[row[j] for j in indices] for row in A]
 
 def solve(n, A):
-    if n % 2 == 0:
-        indices = list(range(1, n, 2)) + list(range(0, n, 2))
-    else:
-        indices = list(range(0, n, 2)) + list(range(1, n, 2))
+    indices = list(range(1, n, 2)) + list(range(0, n, 2))
     B = swap_row(A, indices)
     return swap_col(B, indices)
 
