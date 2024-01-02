@@ -4,7 +4,7 @@
 # O(n + m)
 
 def solve(n, x, p, q):
-    pos = list(range(1, n + 1))  # 各人の位置 (1..n)
+    pos = list(range(1, n + 1))  # 位置 (0..n-1) -> 人 (1..n)
     ppos = p - 1  # pの位置 (0..n-1)
 
     # swap[q] = (x, y) ... 横線(x, y)を加えたらpとqが入れ替わる
