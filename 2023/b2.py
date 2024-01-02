@@ -1,37 +1,35 @@
 #!/usr/bin/env python3
 
 # Problem B - Amidakuji
-# O(n + m)
+# O(m)
+
+def update(p, h):
+    """横線hによる水平位置pの次の位置"""
+    return p - 1 if p - 1 == h else (p + 1 if p == h else p)
+
+def trace(p, x):
+    """水平位置pから横線の列xに沿って進んだときの軌跡"""
+    tr = [p]
+    for xi in x:
+        tr.append(update(tr[-1], xi))
+    return tr
 
 def solve(n, x, p, q):
-    pos = list(range(1, n + 1))  # 位置 (0..n-1) -> 人 (1..n)
-    ppos = p - 1  # pの位置 (0..n-1)
+    tp = trace(p, x)  # Pから下に進んだときの軌跡
 
-    # swap[q] = (x, y) ... 横線(x, y)を加えたらpとqが入れ替わる
-    swap = {}
-
-    def update_swap(i):
-        if ppos > 0     and pos[ppos - 1] not in swap:
-            swap[pos[ppos - 1]] = (ppos,     i)
-        if ppos + 1 < n and pos[ppos + 1] not in swap:
-            swap[pos[ppos + 1]] = (ppos + 1, i)
-
-    for i, xi in enumerate(x):
-        update_swap(i)
-        pos[xi - 1], pos[xi] = pos[xi], pos[xi - 1]
-        if ppos == xi - 1:
-            ppos = xi
-        elif ppos == xi:
-            ppos = xi - 1
-    update_swap(len(x))
-
-    q = pos[q - 1]  # 位置qに来た人
-    if q == p:
+    if tp[-1] == q:
         return "OK"
-    elif q in swap:
-        return ' '.join(map(str, swap[q]))
-    else:
-        return "NG"
+
+    x.reverse()
+    tq = trace(q, x)  # Qから上に進んだときの軌跡
+    tq.reverse()
+
+    # Pの軌跡とQの軌跡が距離1になる位置を探す
+    for i, h in enumerate(zip(tp, tq)):
+        hp, hq = h
+        if abs(hp - hq) <= 1:
+            return f"{min(hp, hq)} {i}"
+    return "NG"
 
 while True:
     n, m, p, q = map(int, input().split())
