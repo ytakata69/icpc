@@ -13,7 +13,7 @@ if [ ! -x "$sut" ]; then
 fi
 
 # problem code (A, B, ...)
-p=`echo "${sut}" | sed 's/^\(.\).*/\1/' | tr a-z A-Z`
+p=`basename "${sut}" | sed 's/^\(.\).*/\1/' | tr a-z A-Z`
 
 # for Problem C
 output_checker="${data}/C/output_checker"
