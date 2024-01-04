@@ -1,3 +1,5 @@
+#!/usr/bin/env elixir
+
 # ACM ICPC 2023 domestic qualifier
 # A - Which Team Should Receive the Sponsor Prize?
 
