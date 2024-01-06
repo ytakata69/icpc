@@ -5,20 +5,19 @@
 
 defmodule Main do
   def main do
-    n = IO.gets("") |> String.trim() |> String.to_integer()
+    n = IO.gets("") |> String.trim |> String.to_integer
     if n != 0 do
       a = IO.gets("") |> String.split(~r{\s}, trim: true)
           |> Enum.map(&String.to_integer/1)
-      solve(n, a) |> IO.inspect()
+      solve(n, a) |> IO.inspect
       main()
     end
   end
   
   def solve(n, a) do
     a |> Enum.map(&(abs(&1 - 2023))) |> Enum.zip(1..n)
-      |> Enum.min() |> elem(1)
+      |> Enum.min |> elem(1)
   end
 end
 
-# Remove the following line when you run this code on AtCoder
 Main.main

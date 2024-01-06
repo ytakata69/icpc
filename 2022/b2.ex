@@ -4,14 +4,14 @@
 # Problem B - Leave No One Behind
 
 defmodule Main do
-  def main() do
-    n = IO.gets("") |> String.trim() |> String.to_integer()
+  def main do
+    n = IO.gets("") |> String.trim |> String.to_integer
     if n != 0 do
       hands = for _ <- 1..n do
                 IO.gets("") |> String.split(~r{\s}, trim: true)
                   |> Enum.map(&String.to_integer/1)
               end
-      solve(n, hands) |> IO.inspect()
+      solve(n, hands) |> IO.inspect
       main()
     end
   end
@@ -22,7 +22,7 @@ defmodule Main do
     # playを繰り返し, 全員の手札がなくなるまでの回数を返す
     {hands, []} |> Stream.iterate(&play/1)
                 |> Enum.take_while(fn {l1, l2} -> l1 != [] || l2 != [] end)
-                |> length()
+                |> length
   end
 
   def play({[],   rest}), do: play({Enum.reverse(rest), []})
@@ -38,4 +38,4 @@ defmodule Main do
   end
 end
 
-Main.main()
+Main.main

@@ -4,18 +4,18 @@
 # Problem C - Training Schedule for ICPC
 
 defmodule Main do
-  def main() do
+  def main do
     [n, m] = IO.gets("") |> String.split(~r{\s}, trim: true)
                          |> Enum.map(&String.to_integer/1)
     if n != 0 || m != 0 do
-      solve(n, m) |> IO.inspect()
+      solve(n, m) |> IO.inspect
       main()
     end
   end
 
   def solve(n, 0), do: n * n
   def solve(n, m) do
-    1..min(m, n + 1) |> Enum.map(&(splitRepose(&1, n, m))) |> Enum.max()
+    1..min(m, n + 1) |> Enum.map(&(splitRepose(&1, n, m))) |> Enum.max
   end
 
   # 休息をs個のセグメントに分けたときの利得
@@ -30,4 +30,4 @@ defmodule Main do
   end
 end
 
-Main.main()
+Main.main

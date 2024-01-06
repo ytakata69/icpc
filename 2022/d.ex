@@ -4,14 +4,14 @@
 # Problem D - Audience Queue
 
 defmodule Main do
+  def split_into_list(str) do
+    str |> String.split(~r{\s}, trim: true) |> Enum.map(&String.to_integer/1)
+  end
+
   def main() do
-    [n, k] = IO.gets("") |> String.split(~r{\s}, trim: true)
-                         |> Enum.map(&String.to_integer/1)
+    [n, k] = IO.gets("") |> split_into_list
     if n != 0 do
-      [ss, ts] = for _ <- 1..2 do
-                   IO.gets("") |> String.split(~r{\s}, trim: true)
-                               |> Enum.map(&String.to_integer/1)
-                 end
+      [ss, ts] = for _ <- 1..2, do: IO.gets("") |> split_into_list
       solve(n, k, ss, ts) |> IO.inspect()
       main()
     end
@@ -20,7 +20,7 @@ defmodule Main do
   # k個のゲートを使ってssを入場順tsに並べ替える方法の個数
   def solve(n, k, ss, ts) do
     # 座席番号の列ssを入場順の列に変換
-    ent = Enum.zip(ts, 0..n-1) |> Map.new()
+    ent = Enum.zip(ts, 0..n-1) |> Map.new
     es = ss |> Enum.map(&(Map.get(ent, &1)))
 
     # 必ず切断すべき位置 (前の人より先に入場) を表すbooleanリスト
@@ -28,7 +28,7 @@ defmodule Main do
 
     # mustcutで分割したときの各座席番号のグループ番号
     gs = Enum.scan(mustcut, 0, &(if &1, do: &2 + 1, else: &2))
-    group = Enum.zip(ss, gs) |> Map.new()
+    group = Enum.zip(ss, gs) |> Map.new
 
     # 切断できない位置 (大きい座席番号より後に入場) を表すbooleanリスト
     premax = Enum.scan(ts, &max/2)  # その位置までの最大座席番号
@@ -45,11 +45,7 @@ defmodule Main do
                |> Enum.zip_with(notcut, &(&1 && &2))
                |> Enum.reduce(&(&1 || &2))
 
-    if l < 0 || conflict do
-      0
-    else
-      Modulo.sum_comb(m, l)
-    end
+    if l < 0 || conflict, do: 0, else: Modulo.sum_comb(m, l)
   end
 end
 
@@ -69,11 +65,11 @@ defmodule Modulo do
   def mpow(_, 0), do: 1
   def mpow(x, 1), do: rem(x, @modulus)
   def mpow(x, p) do
-    k = (if rem(p, 2) == 0, do: 1, else: x)
+    k = if rem(p, 2) == 0, do: 1, else: x
     rem(k * mpow(rem(x * x, @modulus), div(p, 2)), @modulus)
   end
 
   def mdiv(n, d), do: rem(n * mpow(d, @modulus - 2), @modulus)
 end
 
-Main.main()
+Main.main

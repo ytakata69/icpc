@@ -4,12 +4,14 @@
 # B - Amidakuji
 
 defmodule Main do
+  def split_into_list(str) do
+    str |> String.split(~r{\s}, trim: true) |> Enum.map(&String.to_integer/1)
+  end
+
   def main do
-    [n, m, p, q] = IO.gets("") |> String.split(~r{\s}, trim: true)
-                   |> Enum.map(&String.to_integer/1)
+    [n, m, p, q] = IO.gets("") |> split_into_list
     if n != 0 do
-      x = IO.gets("") |> String.split(~r{\s}, trim: true)
-          |> Enum.map(&String.to_integer/1)
+      x = IO.gets("") |> split_into_list
       case solve(n, m, p, q, x) do
         {x, y} -> IO.puts("#{x} #{y}")
         str    -> IO.puts(str)
@@ -38,9 +40,7 @@ defmodule Main do
   end
 
   # 横線のリストxによるpの軌跡
-  def trace(p, x) do
-    [p] ++ Enum.scan(x, p, &cross/2)
-  end
+  def trace(p, x), do: [p] ++ Enum.scan(x, p, &cross/2)
 
   # 横線xによるpの移動
   def cross(x, p) when p == x,     do: p + 1
@@ -48,5 +48,4 @@ defmodule Main do
   def cross(_, p), do: p
 end
 
-# Remove the following line when you run this code on AtCoder
 Main.main
