@@ -25,22 +25,22 @@ defmodule Main do
     onethird = div(total, 3)
 
     # dp = 作ることができる2個の部分和の集合
-    dp = MapSet.new([{0, 0}])
+    dp = Map.new([{0, MapSet.new([0])}])
 
     # 各風船に渡って更新 (balsを整列すると少し速い)
     dp = Enum.reduce(Enum.sort(bals), dp, fn b, dp ->
-           MapSet.union(dp, MapSet.new(
-             (for {b1, b2} <- dp, b1 < onethird, do: norm({b1 + b, b2})) ++
-             (for {b1, b2} <- dp, b2 < onethird, do: {b1, b2 + b})))
+           n1 = Map.new(for {b1, bs} <- dp, b1 < onethird, do: {b1 + b, bs})
+           n2 = Map.new(for {b1, bs} <- dp, do:
+                  {b1, MapSet.new(for b2 <- bs, b2 < onethird, b2 <= b1,
+                                  do: b2 + b)})
+           Map.merge(n1, n2, fn _k, v1, v2 -> MapSet.union(v1, v2) end)
+           |> Map.merge(dp,  fn _k, v1, v2 -> MapSet.union(v1, v2) end)
          end)
 
     # 3個の部分和の最小値 == 配れる人数
-    Enum.max(for {b1, b2} <- dp, do: min(min(b1, b2), total - (b1 + b2)))
+    Enum.max(for {b1, bs} <- dp, b2 <- bs,
+               do: min(min(b1, b2), total - (b1 + b2)))
   end
-
-  # 左 <= 右 である対
-  def norm({a, b}) when a > b, do: {b, a}
-  def norm({a, b}), do: {a, b}
 end
 
 # Dave Thomas. プログラミングElixir, 第2版, 15.4節: Parallel Map
