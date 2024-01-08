@@ -27,8 +27,8 @@ defmodule Main do
     # dp = 作ることができる2個の部分和の集合
     dp = MapSet.new([{0, 0}])
 
-    # 各風船に渡って更新
-    dp = Enum.reduce(bals, dp, fn b, dp ->
+    # 各風船に渡って更新 (balsを整列すると少し速い)
+    dp = Enum.reduce(Enum.sort(bals), dp, fn b, dp ->
            MapSet.union(dp, MapSet.new(
              (for {b1, b2} <- dp, b1 < onethird, do: norm({b1 + b, b2})) ++
              (for {b1, b2} <- dp, b2 < onethird, do: {b1, b2 + b})))
