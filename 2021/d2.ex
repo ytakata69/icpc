@@ -11,8 +11,7 @@ defmodule Main do
   def all_inputs(acc \\ []) do
     n = IO.gets("") |> String.trim |> String.to_integer
     if n != 0 do
-      bals = IO.gets("") |> String.split(~r{\s}, trim: true)
-                         |> Enum.map(&String.to_integer/1)
+      bals = IO.gets("") |> String.split |> Enum.map(&String.to_integer/1)
       all_inputs([bals | acc])
     else
       Enum.reverse(acc)

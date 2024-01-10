@@ -5,8 +5,7 @@
 
 defmodule Main do
   def main do
-    [n, m] = IO.gets("") |> String.split(~r{\s}, trim: true)
-                         |> Enum.map(&String.to_integer/1)
+    [n, m] = IO.gets("") |> String.split |> Enum.map(&String.to_integer/1)
     if n != 0 || m != 0 do
       solve(n, m) |> IO.inspect
       main()

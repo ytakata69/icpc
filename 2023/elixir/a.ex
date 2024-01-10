@@ -7,8 +7,7 @@ defmodule Main do
   def main do
     n = IO.gets("") |> String.trim |> String.to_integer
     if n != 0 do
-      a = IO.gets("") |> String.split(~r{\s}, trim: true)
-          |> Enum.map(&String.to_integer/1)
+      a = IO.gets("") |> String.split |> Enum.map(&String.to_integer/1)
       solve(n, a) |> IO.inspect
       main()
     end

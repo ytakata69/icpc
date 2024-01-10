@@ -5,8 +5,7 @@
 
 defmodule Main do
   def main do
-    cups = IO.gets("") |> String.split(~r{\s}, trim: true)
-                       |> Enum.map(&String.to_integer/1)
+    cups = IO.gets("") |> String.split |> Enum.map(&String.to_integer/1)
     if cups != [0, 0, 0, 0] do
         solve(cups) |> IO.inspect
         main()

@@ -8,8 +8,7 @@ defmodule Main do
     n = IO.gets("") |> String.trim |> String.to_integer
     if n != 0 do
       a = for _ <- 1..n do
-            IO.gets("") |> String.split(~r{\s}, trim: true)
-                        |> Enum.map(&String.to_integer/1)
+            IO.gets("") |> String.split |> Enum.map(&String.to_integer/1)
           end
       solve(n, a) |> Enum.map(&(Enum.join(&1, " ") |> IO.puts))
       main()

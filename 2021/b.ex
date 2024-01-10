@@ -5,7 +5,7 @@
 
 defmodule Main do
   def split_into_list(str) do
-    String.split(str, ~r{\s}, trim: true) |> Enum.map(&String.to_integer/1)
+    String.split(str) |> Enum.map(&String.to_integer/1)
   end
 
   def main do
