@@ -14,24 +14,28 @@ def subset_sums(ls):
         bag |= set([s + x for s in bag])
     return bag
 
-def permut(n, n_elem, min_elem=1, acc=[]):
+def permut(n, n_elem, min_elem=1, acc=[], max_min=None):
     """
     和がnであるn_elem個の要素 (min_elem以上の値) の列を返す.
+    最小要素はmax_min以下.
     """
     if n_elem <= 1:
         yield acc + [n]
     else:
-        for i in range(min_elem, n // 2 + 1):
+        max_min = n // 2 if max_min is None else min(max_min, n // 2)
+        for i in range(max_min, min_elem - 1, -1):
             for p in permut(n - i, n_elem - 1, i, acc + [i]):
                 yield p
 
 def solve(n, s):
     s = set(i for i, c in enumerate(s) if c == 'o') # setに変換
+    s |= set(n - i for i in s) # 対称化
+    mn = sorted(s)[1]  # 0の次に小さいsの要素
 
     # 小さい要素数から順に試す (max_n_elem個あれば必ずカバー可能)
     for n_elem in range(1, max_n_elem):
         # for each 和がnであるn_elem個の要素の列
-        for perm in permut(n, n_elem):
+        for perm in permut(n, n_elem, max_min=mn):
             if s <= subset_sums(perm):  # sをカバーした
                 return n_elem
     return max_n_elem
