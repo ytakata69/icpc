@@ -2,8 +2,14 @@
 
 # Problem D - Efficient Problem Set
 
-# 7要素あれば100以下のすべての部分和を構成可能
-max_n_elem = 7
+def ceil_log2(n):
+    """
+    2 ** (i - 1) < n <= 2 ** i である i を返す.
+    """
+    i, p = 0, 1
+    while p < n:
+        i, p = i + 1, p << 1
+    return i
 
 def subset_sums(ls):
     """
@@ -22,7 +28,7 @@ def permut(n, n_elem, min_elem=1, acc=[], max_min=None):
     if n_elem <= 1:
         yield acc + [n]
     else:
-        max_min = n // 2 if max_min is None else min(max_min, n // 2)
+        max_min = n // n_elem if max_min is None else min(max_min, n // n_elem)
         for i in range(max_min, min_elem - 1, -1):
             for p in permut(n - i, n_elem - 1, i, acc + [i]):
                 yield p
@@ -32,8 +38,11 @@ def solve(n, s):
     s |= set(n - i for i in s) # 対称化
     mn = sorted(s)[1]  # 0の次に小さいsの要素
 
+    max_n_elem = ceil_log2(n + 1)  # 0以上n以下のすべての和を構成可能な要素数
+    min_n_elem = ceil_log2(len(s)) # sの要素を構成するのに最小限必要な要素数
+
     # 小さい要素数から順に試す (max_n_elem個あれば必ずカバー可能)
-    for n_elem in range(1, max_n_elem):
+    for n_elem in range(min_n_elem, max_n_elem):
         # for each 和がnであるn_elem個の要素の列
         for perm in permut(n, n_elem, max_min=mn):
             if s <= subset_sums(perm):  # sをカバーした
