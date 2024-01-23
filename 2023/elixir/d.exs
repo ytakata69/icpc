@@ -31,12 +31,14 @@ defmodule Main do
     max_n_elem = Util.ceil_log2(n + 1)  # 0..nの全部分和を構成可能
     min_n_elem = Util.ceil_log2(MapSet.size(s))  # sの要素を構成する最低限
 
+    s = BitSet.new(s)  # データ構造を変換
+
     # 小さい要素数から順に試す (max_n_elem個あれば必ずカバー可能)
     min_n_elem..(max_n_elem - 1)//1
       |> Enum.drop_while(fn n_elem ->
            # 和がnであるn_elem個の要素の列がsをカバーしなければdrop
            not(Enum.any?(permut(n, n_elem, 1, [], mn),
-                         &(MapSet.subset?(s, subset_sums(&1)))))
+                         &(BitSet.subset?(s, subset_sums(&1)))))
          end)
       |> Enum.take(1)
       |> (fn ans -> if ans == [], do: max_n_elem, else: hd(ans) end).()
@@ -44,8 +46,8 @@ defmodule Main do
 
   # enumの部分和の集合
   def subset_sums(enum) do
-    bag = MapSet.new([0])
-    Enum.reduce(enum, bag, fn x, acc -> Enum.into(acc, acc, &(&1 + x)) end)
+    bag = BitSet.new([0])
+    Enum.reduce(enum, bag, fn x, acc -> BitSet.shift_add(acc, x) end)
   end
 
   # 和がnであるn_elem個の要素の列 (最小要素はmin_elem以上max_min以下)
@@ -73,6 +75,24 @@ defmodule Util do
   def ceil_log2(n, carry) do
     ceil_log2(div(n, 2), carry or rem(n, 2) > 0) + 1
   end
+end
+
+defmodule BitSet do
+  import Bitwise
+
+  def new(), do: 0  # 空集合
+  def new(enum), do: into(enum, new())
+
+  # enumの要素をbsetに追加
+  def into(enum, bset) do
+    Enum.reduce(enum, bset, &((1 <<< &1) ||| &2))
+  end
+
+  # bset1がbset2の部分集合か?
+  def subset?(bset1, bset2), do: (bset1 &&& bnot(bset2)) == 0
+
+  # bsetの要素にxを加えたものをbsetに追加
+  def shift_add(bset, x), do: bset ||| (bset <<< x)
 end
 
 # Taken from: http://elixir-recipes.github.io/concurrency/parallel-map/
