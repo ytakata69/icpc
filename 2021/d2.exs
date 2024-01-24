@@ -5,16 +5,16 @@
 
 defmodule Main do
   def main do
-    all_inputs() |> Parallel.pmap(&solve/1) |> Enum.map(&IO.inspect/1)
+    get_inputs() |> Parallel.pmap(&solve/1) |> Enum.map(&IO.inspect/1)
   end
 
-  def all_inputs(acc \\ []) do
+  def get_inputs(acc \\ []) do
     n = IO.gets("") |> String.trim |> String.to_integer
-    if n != 0 do
-      bals = IO.gets("") |> String.split |> Enum.map(&String.to_integer/1)
-      all_inputs([bals | acc])
-    else
+    if n == 0 do
       Enum.reverse(acc)
+    else
+      bals = IO.gets("") |> String.split |> Enum.map(&String.to_integer/1)
+      get_inputs([bals | acc])
     end
   end
 
@@ -42,17 +42,12 @@ defmodule Main do
   end
 end
 
-# Dave Thomas. プログラミングElixir, 第2版, 15.4節: Parallel Map
+# http://elixir-recipes.github.io/concurrency/parallel-map/
 defmodule Parallel do
-  def pmap(collection, fun) do
-    me = self()
+  def pmap(collection, func) do
     collection
-    |> Enum.map(fn (elem) ->
-         spawn_link fn -> (send me, { self(), fun.(elem) }) end
-       end)
-    |> Enum.map(fn (pid) ->
-         receive do { ^pid, result } -> result end
-       end)
+    |> Enum.map(&(Task.async(fn -> func.(&1) end)))
+    |> Enum.map(&(Task.await(&1, :infinity)))
   end
 end
 
