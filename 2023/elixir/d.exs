@@ -47,7 +47,8 @@ defmodule Main do
   # enumの部分和の集合
   def subset_sums(enum) do
     bag = BitSet.new([0])
-    Enum.reduce(enum, bag, fn x, acc -> BitSet.shift_add(acc, x) end)
+    Enum.reduce(enum, bag, fn x, acc ->
+      BitSet.shift(acc, x) |> BitSet.union(acc) end)
   end
 
   # 和がnであるn_elem個の要素の列 (最小要素はmin_elem以上max_min以下)
@@ -83,16 +84,19 @@ defmodule BitSet do
   def new(), do: 0  # 空集合
   def new(enum), do: into(enum, new())
 
-  # enumの要素をbsetに追加
-  def into(enum, bset) do
-    Enum.reduce(enum, bset, &((1 <<< &1) ||| &2))
+  # enumの要素をsetに追加
+  def into(enum, set) do
+    Enum.reduce(enum, set, &((1 <<< &1) ||| &2))
   end
 
-  # bset1がbset2の部分集合か?
-  def subset?(bset1, bset2), do: (bset1 &&& bnot(bset2)) == 0
+  # set1がset2の部分集合か?
+  def subset?(set1, set2), do: (set1 &&& bnot(set2)) == 0
 
-  # bsetの要素にxを加えたものをbsetに追加
-  def shift_add(bset, x), do: bset ||| (bset <<< x)
+  # 和集合
+  def union(set1, set2), do: set1 ||| set2
+
+  # setの要素にxを加えた集合 {v + x | v in set}
+  def shift(set, x), do: set <<< x
 end
 
 # Taken from: http://elixir-recipes.github.io/concurrency/parallel-map/
