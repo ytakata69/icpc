@@ -37,32 +37,61 @@ defmodule Main do
          end)
 
     # 3個の部分和の最小値 == 配れる人数
-    Enum.max(for {b1, bs} <- dp, b2 <- BitSet.to_list(bs),
+    Enum.max(for {b1, bs} <- dp, b2 <- bs,
                do: min(min(b1, b2), total - (b1 + b2)))
   end
 end
 
 defmodule BitSet do
   import Bitwise
+  defstruct content: 0
 
   def new(collection) do
-    Enum.reduce(collection, 0, fn v, acc -> acc ||| (1 <<< v) end)
+    %BitSet{content:
+      Enum.reduce(collection, 0, fn v, acc -> acc ||| (1 <<< v) end)}
   end
 
-  def union(set1, set2), do: set1 ||| set2
+  def union(%BitSet{content: set1}, %BitSet{content: set2}),
+    do: %BitSet{content: set1 ||| set2}
 
   # { v | v in set, v < limit }
-  def less_than(set, limit), do: set &&& ((1 <<< limit) - 1)
+  def less_than(%BitSet{content: set}, limit),
+    do: %BitSet{content: set &&& ((1 <<< limit) - 1)}
 
   # { v + delta | v in set }
-  def shift(set, delta), do: set <<< delta
+  def shift(%BitSet{content: set}, delta),
+    do: %BitSet{content: set <<< delta}
 
-  def to_list(set), do: _to_list(set, 0, [])
+  def to_list(%BitSet{content: set}), do: _to_list(set, 0, [])
 
   defp _to_list(0, _, acc), do: acc
   defp _to_list(s, i, acc) do
     _to_list(s >>> 1, i + 1, (if (s &&& 1) != 0, do: [i | acc], else: acc))
   end
+end
+
+defimpl Enumerable, for: BitSet do
+  import Bitwise
+
+  def reduce(%BitSet{content: set}, state, fun) do
+    _reduce({set, 0, 1}, state, fun)
+  end
+
+  def _reduce(_content, {:halt, acc}, _fun), do: {:halted, acc}
+  def _reduce(content, {:suspend, acc}, fun),
+    do: {:suspended, acc, &_reduce(content, &1, fun)}
+  def _reduce({set, _i, mask}, {:cont, acc}, _fun) when set < mask,
+    do: {:done, acc}
+  def _reduce({set, i, mask}, state={:cont, acc}, fun) do
+    nstate = if (set &&& mask) != 0, do: fun.(i, acc), else: state
+    _reduce({set, i + 1, mask <<< 1}, nstate, fun)
+  end
+
+  def member?(%BitSet{content: set}, value) do
+    (set &&& (1 <<< value)) != 0
+  end
+  def count(%BitSet{}), do: {:error, __MODULE__}
+  def slice(%BitSet{}), do: {:error, __MODULE__}
 end
 
 # http://elixir-recipes.github.io/concurrency/parallel-map/
