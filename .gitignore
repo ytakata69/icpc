@@ -1,3 +1,14 @@
 *.class
 *.o
 a.out
+
+*.cma
+*.cmi
+*.cmo
+*.cmx
+*.cmxa
+*.cmxs
+
+data
+dataset
+judge*
