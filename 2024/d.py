@@ -68,7 +68,7 @@ while True:
     n = int(input())
     if n == 0:
         break
-    a, b, d = list(map(int, input().split()))
+    a, b, d = map(int, input().split())
     xy = [tuple(map(int, input().split())) for _ in range(n)]
     assert all(len(xyi) == 2 for xyi in xy)
     x, y = solve(a, b, d, xy)
