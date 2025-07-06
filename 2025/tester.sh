@@ -15,13 +15,33 @@ fi
 # problem code (A, B, ...)
 p=`echo "${sut}" | sed 's/^\(.\).*/\1/' | tr a-z A-Z`
 
+dir="${data}/${p}"
+
+
+# for Problems E & F
+if [ "${p}" = E -o "${p}" = F ]; then
+  output_checker="${dir}/output_checker"
+  if [ ! -x "$output_checker" ]; then
+    (cd "${dir}" && \
+     g++ -o `basename "$output_checker"` --std=c++11 output_checker.cc)
+  fi
+fi
+tmpout="tmp.$$"
+
+
 # run four test cases
-for j in ${data}/${p}/0*.in
+for j in "${dir}"/0*.in
 do
-  ans=`echo "${j}" | sed 's/\.in$/.ans/'`
+  ans="${dir}"/`basename "${j}" .in`.ans
   if [ -f "${j}" -a -f "${ans}" ]; then
     printf '%s/%s\n' "${p}" `basename "${j}"`
 
-    ./${sut} < "${j}" | diff - "${ans}"
+    if [ -n "$output_checker" -a -x "$output_checker" ]; then
+      ./${sut} < "${j}" > "${tmpout}"
+      "${output_checker}" "${j}" "${tmpout}" "${ans}" || echo "Fail"
+      rm "${tmpout}"
+    else
+      ./${sut} < "${j}" | diff - "${ans}"
+    fi
   fi
 done
