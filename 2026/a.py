@@ -9,5 +9,5 @@ while True:
         break
     cs = list(map(int, input().split()))
     assert len(cs) == n
-    m = max(cs, key=lambda c: (c + 13) % 16)
+    m = max(cs, key=lambda c: (c + 10) % 13)
     print(m)
