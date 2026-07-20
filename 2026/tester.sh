@@ -17,19 +17,7 @@ p=`echo "${sut}" | sed 's/^\(.\).*/\1/' | tr a-z A-Z`
 
 dir="${data}/${p}"
 
-
-# for Problems E & F
-if [ "${p}" = E -o "${p}" = F ]; then
-  output_checker="${dir}/output_checker"
-  if [ ! -x "$output_checker" ]; then
-    (cd "${dir}" && \
-     g++ -o `basename "$output_checker"` --std=c++11 output_checker.cc)
-  fi
-fi
-tmpout="tmp.$$"
-
-
-# run four test cases
+# run all test cases
 for j in "${dir}"/0*.in
 do
   ans="${dir}"/`basename "${j}" .in`.ans
